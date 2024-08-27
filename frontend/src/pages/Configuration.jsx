@@ -1,21 +1,17 @@
 import React, { useState } from 'react';
 
 const Configuration = () => {
-  const [themeColor, setThemeColor] = useState('#000000'); // Default color
-  const [apiKey, setApiKey] = useState(''); // API key state
-  const [responseDelay, setResponseDelay] = useState(1); // Response delay state
+  const [themeColor, setThemeColor] = useState('#000000');
+  const [apiKey, setApiKey] = useState('');
+  const [responseDelay, setResponseDelay] = useState(1);
 
   const handleSaveConfig = () => {
-    // Logic to save configuration
-    // You would typically send this data to a server to be saved
     alert('Configuration saved successfully!');
   };
 
   return (
     <div className="p-6 bg-white shadow-md rounded-md max-w-4xl mx-auto mt-8">
       <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Configuration</h1>
-      
-      {/* Theme Color Configuration */}
       <div className="mb-4">
         <label className="block text-gray-600 mb-2">
           Theme Color:
@@ -27,8 +23,6 @@ const Configuration = () => {
           />
         </label>
       </div>
-
-      {/* API Key Configuration */}
       <div className="mb-4">
         <label className="block text-gray-600 mb-2">
           API Key:
@@ -41,8 +35,6 @@ const Configuration = () => {
           />
         </label>
       </div>
-
-      {/* Response Delay Configuration */}
       <div className="mb-4">
         <label className="block text-gray-600 mb-2">
           Response Delay (seconds):
@@ -56,8 +48,6 @@ const Configuration = () => {
           />
         </label>
       </div>
-
-      {/* Save Button */}
       <button
         onClick={handleSaveConfig}
         className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition"

@@ -1,23 +1,20 @@
 import React, { useState } from 'react';
 
 const KnowledgeBase = () => {
-  // Example state to hold knowledge base entries
   const [entries, setEntries] = useState([
     { id: 1, question: 'How can I reset my password?', answer: 'You can reset your password by clicking on the "Forgot Password" link on the login page.' },
     { id: 2, question: 'What are the support hours?', answer: 'Our support team is available 24/7 to assist you with any queries.' },
   ]);
 
-  // State for the form inputs
   const [newQuestion, setNewQuestion] = useState('');
   const [newAnswer, setNewAnswer] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editingEntryId, setEditingEntryId] = useState(null);
 
-  // Function to handle adding a new entry
   const handleAddEntry = () => {
     if (newQuestion && newAnswer) {
       const newEntry = {
-        id: entries.length + 1, // Simple ID generation
+        id: entries.length + 1,
         question: newQuestion,
         answer: newAnswer,
       };
@@ -27,7 +24,6 @@ const KnowledgeBase = () => {
     }
   };
 
-  // Function to handle editing an entry
   const handleEditEntry = (id) => {
     const entry = entries.find((entry) => entry.id === id);
     if (entry) {
@@ -38,18 +34,14 @@ const KnowledgeBase = () => {
     }
   };
 
-  // Function to handle saving an edited entry
   const handleSaveEdit = () => {
-    setEntries(entries.map((entry) =>
-      entry.id === editingEntryId ? { ...entry, question: newQuestion, answer: newAnswer } : entry
-    ));
+    setEntries(entries.map((entry) => (entry.id === editingEntryId ? { ...entry, question: newQuestion, answer: newAnswer } : entry)));
     setNewQuestion('');
     setNewAnswer('');
     setIsEditing(false);
     setEditingEntryId(null);
   };
 
-  // Function to handle deleting an entry
   const handleDeleteEntry = (id) => {
     setEntries(entries.filter((entry) => entry.id !== id));
   };
@@ -57,8 +49,6 @@ const KnowledgeBase = () => {
   return (
     <div className="p-6 bg-white shadow-md rounded-md max-w-4xl mx-auto mt-8">
       <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Knowledge Base</h1>
-      
-      {/* Form for adding/editing entries */}
       <div className="mb-4">
         <input
           type="text"
@@ -89,8 +79,6 @@ const KnowledgeBase = () => {
           </button>
         )}
       </div>
-
-      {/* Display list of knowledge base entries */}
       <ul className="space-y-4">
         {entries.map((entry) => (
           <li key={entry.id} className="border-b pb-4">

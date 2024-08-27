@@ -1,20 +1,17 @@
 import React, { useState } from 'react';
 
 const Settings = () => {
-  const [username, setUsername] = useState(''); // Example state for a username
-  const [email, setEmail] = useState(''); // Example state for an email
-  const [notifications, setNotifications] = useState(true); // Example state for notifications
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [notifications, setNotifications] = useState(true);
 
   const handleSaveSettings = () => {
-    // Logic to save settings
     alert('Settings saved successfully!');
   };
 
   return (
     <div className="p-6 bg-white shadow-md rounded-md max-w-4xl mx-auto mt-8">
       <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Settings</h1>
-      
-      {/* User Information */}
       <div className="mb-4">
         <label className="block text-gray-600 mb-2">
           Username:
@@ -26,7 +23,6 @@ const Settings = () => {
           />
         </label>
       </div>
-
       <div className="mb-4">
         <label className="block text-gray-600 mb-2">
           Email:
@@ -38,8 +34,6 @@ const Settings = () => {
           />
         </label>
       </div>
-
-      {/* Notification Preferences */}
       <div className="mb-4">
         <label className="block text-gray-600 mb-2">
           Notifications:
@@ -51,8 +45,6 @@ const Settings = () => {
           />
         </label>
       </div>
-
-      {/* Save Button */}
       <button
         onClick={handleSaveSettings}
         className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
