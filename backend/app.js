@@ -1,14 +1,18 @@
 const express = require('express');
 const cors = require('cors');
-const { errorHandler } = require('./Middleware/errorMiddleware');
+const { errorHandler } = require('./middlewares/errorMiddleware');
+const authRoutes = require('./routes/authRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const knowledgeBaseRoutes = require('./routes/knowledgeBaseRoutes');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-app.use('/api', chatRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/knowledge-base', knowledgeBaseRoutes);
 
 app.use(errorHandler);
 

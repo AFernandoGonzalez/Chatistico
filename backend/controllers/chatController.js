@@ -1,31 +1,44 @@
-const axios = require('axios');
-require('dotenv').config();
+const supabase = require('../config/db');
+const { saveChatLog } = require('../models/Chat');
 
-const handleChat = async (req, res) => {
-  const { message } = req.body;
+exports.sendMessage = async (req, res) => {
+  const { userId, message } = req.body;
 
   try {
-    // Call OpenAI API to generate a response
-    // const response = await axios.post(
-    //   'https://api.openai.com/v1/completions',
-    //   {
-    //     model: 'text-davinci-003',
-    //     prompt: message,
-    //     max_tokens: 150,
-    //   },
-    //   {
-    //     headers: {
-    //       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-    //     },
-    //   }
-    // );
+    // Retrieve the knowledge base for the user
+    const { data: qaPairs, error } = await supabase.from('knowledge_base').select('*').eq('user_id', userId);
 
-    // res.status(200).json({ reply: response.data.choices[0].text.trim() });
-    res.status(200)
+    if (error) throw error;
+
+    // Find a matching answer based on the user's message
+    const matchedQA = qaPairs.find(qa => qa.question.toLowerCase() === message.toLowerCase());
+
+    let reply;
+    if (matchedQA) {
+      reply = matchedQA.answer;
+    } else {
+      reply = "I am sorry, I don't have an answer to that question.";
+    }
+
+    // Save chat log
+    await saveChatLog(userId, message, reply);
+
+    res.status(200).json({ reply });
   } catch (error) {
-    console.error('Error processing chat message:', error);
     res.status(500).json({ error: 'Failed to generate a response' });
   }
 };
 
-module.exports = { handleChat };
+exports.getChatHistory = async (req, res) => {
+  const { userId } = req.query;
+
+  try {
+    const { data: chatLogs, error } = await supabase.from('chat_logs').select('*').eq('user_id', userId);
+
+    if (error) throw error;
+    
+    res.status(200).json({ chatLogs });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to retrieve chat history' });
+  }
+};
