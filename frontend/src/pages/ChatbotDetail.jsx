@@ -1,12 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import KnowledgeBase from './KnowledgeBase';
 import Configuration from './Configuration';
 import ChatHistory from '../components/ChatHistory';
+import { Overview } from './Overview';
 
 const ChatbotDetail = () => {
   const { id } = useParams();
-  const [viewMode, setViewMode] = useState('overview');
+  // Load viewMode from localStorage or default to 'overview'
+  const [viewMode, setViewMode] = useState(() => {
+    return localStorage.getItem('viewMode') || 'overview';
+  });
+
+  // Save viewMode to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('viewMode', viewMode);
+  }, [viewMode]);
 
   return (
     <div className="flex flex-col h-screen">
@@ -21,13 +30,8 @@ const ChatbotDetail = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-grow p-6 bg-gray-100">
-        {viewMode === 'overview' && (
-          <div>
-            <h1 className="text-2xl font-bold mb-4">Chatbot Overview</h1>
-            {/* Overview content goes here */}
-          </div>
-        )}
+      <div className="flex-grow  bg-gray-100">
+        {viewMode === 'overview' && <Overview />}
         {viewMode === 'knowledge-base' && <KnowledgeBase />}
         {viewMode === 'configuration' && <Configuration />}
         {viewMode === 'chat' && <ChatHistory />}

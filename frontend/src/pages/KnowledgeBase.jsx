@@ -17,7 +17,7 @@ const KnowledgeBase = () => {
   };
 
   return (
-    <div className="p-6 bg-white shadow-md rounded-md max-w-6xl mx-auto mt-8">
+    <div className="p-6 bg-white shadow-md rounded-md max-w-6xl mx-auto">
       <h1 className="text-3xl font-bold text-gray-800 mb-4">Knowledge Base</h1>
       <p className="text-gray-600 mb-6">
         Add and manage data sources that form the AI's knowledge base. These data are used by the AI to respond to user queries.

@@ -11,10 +11,10 @@ const Sidebar = () => {
     <motion.div
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
-      className={`fixed top-0 left-0 h-full bg-blue-600 flex flex-col items-center`}
+      className={`fixed top-0 left-0 h-full bg-blue-600 flex flex-col items-center z-10`}
       initial={{ width: '4rem' }}
       animate={{ width: isExpanded ? '11rem' : '4rem' }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.2 }}
     >
       <div className="mt-4">
         <button className="p-3 hover:bg-blue-700 rounded-full text-white">
