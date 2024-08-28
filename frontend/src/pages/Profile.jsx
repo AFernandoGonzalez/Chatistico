@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const Settings = () => {
+const Profile = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [notifications, setNotifications] = useState(true);
@@ -55,4 +55,4 @@ const Settings = () => {
   );
 };
 
-export default Settings;
+export default Profile;

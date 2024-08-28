@@ -7,7 +7,7 @@ import DashboardPage from './pages/Dashboard';
 import ChatbotDetail from './pages/ChatbotDetail';
 import KnowledgeBase from './pages/KnowledgeBase';
 import Configuration from './pages/Configuration';
-import Settings from './pages/Settings';
+import Profile from './pages/Profile';
 
 const App = () => {
   return (
@@ -21,7 +21,7 @@ const App = () => {
             <Route path="chatbot/:id" element={<ChatbotDetail />} />
             <Route path="knowledge-base" element={<KnowledgeBase />} />
             <Route path="configuration" element={<Configuration />} />
-            <Route path="settings" element={<Settings />} />
+            <Route path="profile" element={<Profile />} />
           </Route>
         </Routes>
       </div>
