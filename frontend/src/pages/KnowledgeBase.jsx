@@ -1,173 +1,261 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus, faFilter, faChartPie, faSyncAlt, faEye, faTrashAlt, faTimes } from '@fortawesome/free-solid-svg-icons';
 
 const KnowledgeBase = () => {
   const [activeTab, setActiveTab] = useState('text');
   const [entries, setEntries] = useState([
     { id: 1, type: 'text', content: 'hi', characters: 2, status: 'Processed', dateAdded: 'August 27, 2024' },
+    { id: 2, type: 'faq', content: 'What is AI?', characters: 12, status: 'Pending', dateAdded: 'August 28, 2024' },
   ]);
   const [showModal, setShowModal] = useState(false);
   const [selectedType, setSelectedType] = useState('text');
+  const modalRef = useRef(null);
 
+  // Handle adding a new entry
   const handleAddEntry = (newEntry) => {
     setEntries([...entries, newEntry]);
+    setShowModal(false); // Close modal after adding entry
   };
 
+  // Handle deleting an entry
   const handleDeleteEntry = (id) => {
     setEntries(entries.filter((entry) => entry.id !== id));
   };
 
+  // Handle viewing an entry
+  const handleViewEntry = (id) => {
+    alert(`Viewing details for entry ${id}`);
+  };
+
+  // Close modal when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        setShowModal(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
     <div className="p-6 bg-white shadow-md rounded-md max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-800 mb-4">Knowledge Base</h1>
-      <p className="text-gray-600 mb-6">
-        Add and manage data sources that form the AI's knowledge base. These data are used by the AI to respond to user queries.
-      </p>
-      
-      <button
-        className="mb-4 px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition"
-        onClick={() => setShowModal(true)}
-      >
-        + New Data Source
-      </button>
-      
-      <div className="flex space-x-4 mb-6">
-        <button onClick={() => setActiveTab('link')} className={`px-4 py-2 ${activeTab === 'link' ? 'border-b-2 border-black' : 'text-gray-500'}`}>Link</button>
-        <button onClick={() => setActiveTab('text')} className={`px-4 py-2 ${activeTab === 'text' ? 'border-b-2 border-black' : 'text-gray-500'}`}>Text</button>
-        <button onClick={() => setActiveTab('faq')} className={`px-4 py-2 ${activeTab === 'faq' ? 'border-b-2 border-black' : 'text-gray-500'}`}>FAQ</button>
-        <button onClick={() => setActiveTab('document')} className={`px-4 py-2 ${activeTab === 'document' ? 'border-b-2 border-black' : 'text-gray-500'}`}>Document</button>
-      </div>
-      
-      <div className="flex space-x-4 mb-4">
-        <button className="bg-gray-100 px-4 py-2 rounded-md">Filter</button>
-        <button className="bg-black text-white px-4 py-2 rounded-md">Stats</button>
-        <button className="bg-gray-100 px-4 py-2 rounded-md">Refresh</button>
-        <input type="text" placeholder="Search texts" className="flex-grow p-2 border border-gray-300 rounded-md" />
-      </div>
-      
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-        <div className="p-4 bg-gray-100 rounded-md">
-          <p className="text-lg font-bold">1</p>
-          <p className="text-sm text-gray-600">Total Sources</p>
-        </div>
-        <div className="p-4 bg-green-100 rounded-md">
-          <p className="text-lg font-bold">1</p>
-          <p className="text-sm text-gray-600">Processed</p>
-        </div>
-        <div className="p-4 bg-yellow-100 rounded-md">
-          <p className="text-lg font-bold">0</p>
-          <p className="text-sm text-gray-600">Pending</p>
-        </div>
-        <div className="p-4 bg-blue-100 rounded-md">
-          <p className="text-lg font-bold">0</p>
-          <p className="text-sm text-gray-600">Processing</p>
-        </div>
-        <div className="p-4 bg-red-100 rounded-md">
-          <p className="text-lg font-bold">0</p>
-          <p className="text-sm text-gray-600">Error</p>
-        </div>
-      </div>
-      
-      <table className="w-full text-left border-collapse">
-        <thead>
-          <tr>
-            <th className="border-b p-4">Text</th>
-            <th className="border-b p-4">Characters</th>
-            <th className="border-b p-4">Status</th>
-            <th className="border-b p-4">Date Added</th>
-            <th className="border-b p-4">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {entries.map((entry) => (
-            <tr key={entry.id}>
-              <td className="border-b p-4">{entry.content}</td>
-              <td className="border-b p-4">{entry.characters}</td>
-              <td className="border-b p-4">
-                <span className={`px-2 py-1 rounded-md ${entry.status === 'Processed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                  {entry.status}
-                </span>
-              </td>
-              <td className="border-b p-4">{entry.dateAdded}</td>
-              <td className="border-b p-4">
-                <button className="text-blue-500 hover:text-blue-700 mr-2">👁️</button>
-                <button onClick={() => handleDeleteEntry(entry.id)} className="text-red-500 hover:text-red-700">🗑️</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-md shadow-md max-w-md w-full">
-            <button className="mb-4 text-gray-500" onClick={() => setShowModal(false)}>Close</button>
-            <h2 className="text-xl font-bold mb-4">Add New Data Source</h2>
-
-            <div className="flex space-x-4 mb-6">
-              <button onClick={() => setSelectedType('link')} className={`px-4 py-2 ${selectedType === 'link' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>Link</button>
-              <button onClick={() => setSelectedType('text')} className={`px-4 py-2 ${selectedType === 'text' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>Text</button>
-              <button onClick={() => setSelectedType('faq')} className={`px-4 py-2 ${selectedType === 'faq' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>Q&A</button>
-              <button onClick={() => setSelectedType('document')} className={`px-4 py-2 ${selectedType === 'document' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>Document</button>
-            </div>
-
-            {selectedType === 'text' && (
-              <div>
-                <textarea
-                  placeholder="Enter text here..."
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 mb-2"
-                />
-                <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">
-                  Submit
-                </button>
-              </div>
-            )}
-
-            {selectedType === 'faq' && (
-              <div>
-                <input
-                  type="text"
-                  placeholder="Enter question"
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 mb-2"
-                />
-                <textarea
-                  placeholder="Enter answer"
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 mb-2"
-                />
-                <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">
-                  Submit
-                </button>
-              </div>
-            )}
-
-{selectedType === 'document' && (
-              <div>
-                <input type="file" multiple className="mb-4" />
-                <p className="text-sm text-gray-500 mb-2">
-                  Supported files: PDF, TXT, Microsoft Word. Max. 10 files at a time. File size: 1 MB per file (Upgrade plan to increase limit).
-                </p>
-                <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">
-                  Upload
-                </button>
-              </div>
-            )}
-
-            {selectedType === 'link' && (
-              <div>
-                <input
-                  type="url"
-                  placeholder="Enter URL"
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 mb-2"
-                />
-                <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">
-                  Add Link
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <Header setShowModal={setShowModal} />
+      <TabSelector activeTab={activeTab} setActiveTab={setActiveTab} />
+      <ActionButtons />
+      <DataSummary entries={entries} />
+      <EntriesTable entries={entries} activeTab={activeTab} handleDeleteEntry={handleDeleteEntry} handleViewEntry={handleViewEntry} />
+      {showModal && <Modal modalRef={modalRef} setShowModal={setShowModal} selectedType={selectedType} setSelectedType={setSelectedType} handleAddEntry={handleAddEntry} />}
     </div>
   );
 };
+
+const Header = ({ setShowModal }) => (
+  <>
+    <h1 className="text-3xl font-bold text-gray-800 mb-4">Knowledge Base</h1>
+    <p className="text-gray-600 mb-6">Add and manage data sources that form the AI's knowledge base. These data are used by the AI to respond to user queries.</p>
+    <button className="mb-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition" onClick={() => setShowModal(true)}>
+      <FontAwesomeIcon icon={faPlus} className="mr-2" /> New Data Source
+    </button>
+  </>
+);
+
+const TabSelector = ({ activeTab, setActiveTab }) => (
+  <div className="flex space-x-4 mb-6">
+    {['link', 'text', 'faq', 'document'].map((type) => (
+      <button key={type} onClick={() => setActiveTab(type)} className={`px-4 py-2 ${activeTab === type ? 'border-b-2 border-blue-500 text-blue-600 font-bold' : 'text-gray-500'}`}>
+        {type.charAt(0).toUpperCase() + type.slice(1)}
+      </button>
+    ))}
+  </div>
+);
+
+const ActionButtons = () => (
+  <div className="flex space-x-4 mb-4">
+    <button className="flex items-center bg-gray-100 px-4 py-2 rounded-md"><FontAwesomeIcon icon={faFilter} className="mr-2" /> Filter</button>
+    <button className="flex items-center bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition"><FontAwesomeIcon icon={faChartPie} className="mr-2" /> Stats</button>
+    <button className="flex items-center bg-gray-100 px-4 py-2 rounded-md"><FontAwesomeIcon icon={faSyncAlt} className="mr-2" /> Refresh</button>
+    <input type="text" placeholder="Search texts" className="flex-grow p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500" />
+  </div>
+);
+
+const DataSummary = ({ entries }) => (
+  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+    <DataCard title="Total Sources" value={entries.length} color="bg-gray-100" />
+    <DataCard title="Processed" value={entries.filter(entry => entry.status === 'Processed').length} color="bg-green-100" />
+    <DataCard title="Pending" value={entries.filter(entry => entry.status === 'Pending').length} color="bg-yellow-100" />
+    <DataCard title="Processing" value={entries.filter(entry => entry.status === 'Processing').length} color="bg-blue-100" />
+    <DataCard title="Error" value={entries.filter(entry => entry.status === 'Error').length} color="bg-red-100" />
+  </div>
+);
+
+const DataCard = ({ title, value, color }) => (
+  <div className={`p-4 ${color} rounded-md shadow-md`}>
+    <p className="text-lg font-bold">{value}</p>
+    <p className="text-sm text-gray-600">{title}</p>
+  </div>
+);
+
+const EntriesTable = ({ entries, activeTab, handleDeleteEntry, handleViewEntry }) => {
+  // Filter entries based on the active tab
+  const filteredEntries = entries.filter(entry => entry.type === activeTab);
+
+  return (
+    <table className="w-full text-left border-collapse">
+      <thead>
+        <tr>
+          <th className="border-b p-4">Text</th>
+          <th className="border-b p-4">Characters</th>
+          <th className="border-b p-4">Status</th>
+          <th className="border-b p-4">Date Added</th>
+          <th className="border-b p-4">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {filteredEntries.map((entry) => (
+          <tr key={entry.id} className="hover:bg-gray-100 transition">
+            <td className="border-b p-4">{entry.content}</td>
+            <td className="border-b p-4">{entry.characters}</td>
+            <td className="border-b p-4">
+              <span className={`px-2 py-1 rounded-md ${entry.status === 'Processed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                {entry.status}
+              </span>
+            </td>
+            <td className="border-b p-4">{entry.dateAdded}</td>
+            <td className="border-b p-4">
+              <button onClick={() => handleViewEntry(entry.id)} className="text-blue-500 hover:text-blue-700 mr-2">
+                <FontAwesomeIcon icon={faEye} />
+              </button>
+              <button onClick={() => handleDeleteEntry(entry.id)} className="text-red-500 hover:text-red-700">
+                <FontAwesomeIcon icon={faTrashAlt} />
+              </button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+};
+
+const Modal = ({ modalRef, setShowModal, selectedType, setSelectedType, handleAddEntry }) => {
+  const [content, setContent] = useState('');
+  const [question, setQuestion] = useState('');
+  const [answer, setAnswer] = useState('');
+  const [url, setUrl] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    let newEntry;
+    if (selectedType === 'text') {
+      newEntry = { id: Math.random(), type: selectedType, content, characters: content.length, status: 'Pending', dateAdded: new Date().toLocaleDateString() };
+    } else if (selectedType === 'faq') {
+      newEntry = { id: Math.random(), type: selectedType, content: question, characters: question.length + answer.length, status: 'Pending', dateAdded: new Date().toLocaleDateString() };
+    } else if (selectedType === 'link') {
+      newEntry = { id: Math.random(), type: selectedType, content: url, characters: url.length, status: 'Pending', dateAdded: new Date().toLocaleDateString() };
+    } else if (selectedType === 'document') {
+      newEntry = { id: Math.random(), type: selectedType, content: 'Document entry', characters: 0, status: 'Pending', dateAdded: new Date().toLocaleDateString() };
+    }
+    handleAddEntry(newEntry);
+    setContent('');
+    setQuestion('');
+    setAnswer('');
+    setUrl('');
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+      <div ref={modalRef} className="bg-white p-6 rounded-md shadow-md max-w-md w-full">
+        <button className="mb-4 text-gray-500" onClick={() => setShowModal(false)}>
+          <FontAwesomeIcon icon={faTimes} className="text-2xl" />
+        </button>
+        <h2 className="text-xl font-bold mb-4">Add New Data Source</h2>
+        <div className="flex space-x-4 mb-6">
+          {['link', 'text', 'faq', 'document'].map((type) => (
+            <button key={type} onClick={() => setSelectedType(type)} className={`px-4 py-2 ${selectedType === type ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
+              {type.charAt(0).toUpperCase() + type.slice(1)}
+            </button>
+          ))}
+        </div>
+        {selectedType === 'text' && (
+          <TextForm content={content} setContent={setContent} handleSubmit={handleSubmit} />
+        )}
+        {selectedType === 'faq' && (
+          <FAQForm question={question} setQuestion={setQuestion} answer={answer} setAnswer={setAnswer} handleSubmit={handleSubmit} />
+        )}
+        {selectedType === 'link' && (
+          <LinkForm url={url} setUrl={setUrl} handleSubmit={handleSubmit} />
+        )}
+        {selectedType === 'document' && (
+          <DocumentForm handleSubmit={handleSubmit} />
+        )}
+      </div>
+    </div>
+  );
+};
+
+const TextForm = ({ content, setContent, handleSubmit }) => (
+  <form onSubmit={handleSubmit}>
+    <textarea
+      placeholder="Enter text here..."
+      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 mb-2"
+      value={content}
+      onChange={(e) => setContent(e.target.value)}
+    />
+    <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">
+      Submit
+    </button>
+  </form>
+);
+
+const FAQForm = ({ question, setQuestion, answer, setAnswer, handleSubmit }) => (
+  <form onSubmit={handleSubmit}>
+    <input
+      type="text"
+      placeholder="Enter question"
+      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 mb-2"
+      value={question}
+      onChange={(e) => setQuestion(e.target.value)}
+    />
+    <textarea
+      placeholder="Enter answer"
+      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 mb-2"
+      value={answer}
+      onChange={(e) => setAnswer(e.target.value)}
+    />
+    <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">
+      Submit
+    </button>
+  </form>
+);
+
+const LinkForm = ({ url, setUrl, handleSubmit }) => (
+  <form onSubmit={handleSubmit}>
+    <input
+      type="url"
+      placeholder="Enter URL"
+      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 mb-2"
+      value={url}
+      onChange={(e) => setUrl(e.target.value)}
+    />
+    <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">
+      Add Link
+    </button>
+  </form>
+);
+
+const DocumentForm = ({ handleSubmit }) => (
+  <form onSubmit={handleSubmit}>
+    <input type="file" multiple className="mb-4" />
+    <p className="text-sm text-gray-500 mb-2">
+      Supported files: PDF, TXT, Microsoft Word. Max. 10 files at a time. File size: 1 MB per file (Upgrade plan to increase limit).
+    </p>
+    <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">
+      Upload
+    </button>
+  </form>
+);
 
 export default KnowledgeBase;

@@ -14,7 +14,7 @@ const Dashboard = () => {
   };
 
   const handleViewChatbot = (id) => {
-    navigate(`/dashboard/chatbot/${id}`);
+    navigate(`/dashboard/chatbot/${id}/overview`); // Adjusted path to include 'overview'
   };
 
   return (
