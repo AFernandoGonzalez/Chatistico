@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPalette, faTextHeight, faCog, faSave, faBars, faCommentDots } from '@fortawesome/free-solid-svg-icons';
+import { faPalette, faTextHeight, faCog, faSave, faBars, faCommentDots, faRobot, faUserCircle } from '@fortawesome/free-solid-svg-icons';
 import ChatbotPreview from '../components/ChatWidgetPreview';
 
 const Configuration = () => {
@@ -16,19 +16,45 @@ const Configuration = () => {
   const [botIconCircular, setBotIconCircular] = useState(false);
   const [chatIconCircular, setChatIconCircular] = useState(false);
   const [chatIconSize, setChatIconSize] = useState(55);
+  const [botIconImage, setBotIconImage] = useState(null);
+  const [chatIconImage, setChatIconImage] = useState(null);
+
+  const [chatbotName, setChatbotName] = useState('Support Bot');
+
 
   const handleSave = () => {
     alert('Settings saved!');
+  };
+
+  const handleBotIconImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setBotIconImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleChatIconImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setChatIconImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
     <div className="flex relative">
       {/* Sidebar Tabs */}
       <div className="w-[60px] bg-gray-100 border-r">
-        <div className="flex flex-col space-y-4">
-          <TabButton icon={faPalette} isActive={activeTab === 'design'} onClick={() => setActiveTab('design')} />
-          <TabButton icon={faTextHeight} isActive={activeTab === 'texts'} onClick={() => setActiveTab('texts')} />
-          <TabButton icon={faCog} isActive={activeTab === 'configure'} onClick={() => setActiveTab('configure')} />
+        <div className="flex flex-col ">
+        <TabButton icon={faPalette} label="Design" isActive={activeTab === 'design'} onClick={() => setActiveTab('design')} />
+        <TabButton icon={faTextHeight} label="Texts" isActive={activeTab === 'texts'} onClick={() => setActiveTab('texts')} />
         </div>
       </div>
 
@@ -95,55 +121,6 @@ const Configuration = () => {
                 </div>
               </section>
 
-              {/* Position Section */}
-              <section className="mb-6">
-                <div className="text-lg font-semibold mb-2">Position</div>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="text-gray-700">Placement</div>
-                    <select
-                      name="widget_position"
-                      value={widgetPosition}
-                      onChange={(e) => setWidgetPosition(e.target.value)}
-                      className="custom_select border border-gray-300 rounded-md px-2 py-1"
-                    >
-                      <option value="br">Bottom right</option>
-                      <option value="bl">Bottom left</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="text-gray-700">Horizontal spacing</div>
-                    <div className="flex items-center">
-                      <input
-                        type="number"
-                        min="0"
-                        max="300"
-                        value={horizontalSpacing}
-                        onChange={(e) => setHorizontalSpacing(parseInt(e.target.value))}
-                        className="input-style-one border border-gray-300 rounded-md px-2 py-1 w-16"
-                      />
-                      <span className="ml-2">px</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="text-gray-700">Vertical spacing</div>
-                    <div className="flex items-center">
-                      <input
-                        type="number"
-                        min="0"
-                        max="300"
-                        value={verticalSpacing}
-                        onChange={(e) => setVerticalSpacing(parseInt(e.target.value))}
-                        className="input-style-one border border-gray-300 rounded-md px-2 py-1 w-16"
-                      />
-                      <span className="ml-2">px</span>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
               {/* Bot Icon Section */}
               <section className="mb-6">
                 <div className="text-lg font-semibold mb-2">Bot Icon</div>
@@ -161,10 +138,22 @@ const Configuration = () => {
                     <div className="text-gray-700">Image</div>
                     <div className="flex items-center">
                       <div
-                        className={`w-12 h-12 ${botIconCircular ? 'rounded-full' : ''} bg-cover bg-center`}
-                        style={{ backgroundImage: "url('your-image-url')" }}
-                      ></div>
-                      <button className="ml-3 bg-gray-200 hover:bg-gray-300 text-black px-3 py-1 rounded-md">Change</button>
+                        className={`w-12 h-12 ${botIconCircular ? 'rounded-full' : ''} bg-cover bg-center flex items-center justify-center`}
+                      >
+                        {botIconImage ? (
+                          <img
+                            src={botIconImage}
+                            alt="Bot Icon"
+                            className={`w-full h-full ${botIconCircular ? 'rounded-full' : ''}`}
+                          />
+                        ) : (
+                          <FontAwesomeIcon icon={faRobot} size="2x" style={{ color: '#ccc' }} />
+                        )}
+                      </div>
+                      <label className="ml-3 bg-gray-200 hover:bg-gray-300 text-black px-3 py-1 rounded-md cursor-pointer">
+                        Change
+                        <input type="file" onChange={handleBotIconImageChange} className="hidden" />
+                      </label>
                     </div>
                   </div>
                 </div>
@@ -201,10 +190,23 @@ const Configuration = () => {
                   <div className="flex items-center justify-between">
                     <div className="text-gray-700">Image</div>
                     <div className="flex items-center">
-                      <div className={`w-12 h-12 flex justify-center items-center ${chatIconCircular ? 'rounded-full' : ''} bg-black`}>
-                        <FontAwesomeIcon icon={faBars} style={{ color: "#FFFFFF" }} />
+                      <div
+                        className={`w-12 h-12 ${chatIconCircular ? 'rounded-full' : ''} bg-cover bg-center flex items-center justify-center`}
+                      >
+                        {chatIconImage ? (
+                          <img
+                            src={chatIconImage}
+                            alt="Chat Icon"
+                            className={`w-full h-full ${chatIconCircular ? 'rounded-full' : ''}`}
+                          />
+                        ) : (
+                          <FontAwesomeIcon icon={faUserCircle} size="2x" style={{ color: '#ccc' }} />
+                        )}
                       </div>
-                      <button className="ml-3 bg-gray-200 hover:bg-gray-300 text-black px-3 py-1 rounded-md">Change</button>
+                      <label className="ml-3 bg-gray-200 hover:bg-gray-300 text-black px-3 py-1 rounded-md cursor-pointer">
+                        Change
+                        <input type="file" onChange={handleChatIconImageChange} className="hidden" />
+                      </label>
                     </div>
                   </div>
                 </div>
@@ -219,16 +221,19 @@ const Configuration = () => {
           {activeTab === 'texts' && (
             <div>
               <h2 className="text-2xl font-bold">Texts</h2>
-              {/* Add your content here */}
+              <div className="mt-4">
+                <label className="block text-gray-700 mb-2">Chatbot Name</label>
+                <input
+                  type="text"
+                  value={chatbotName}
+                  onChange={(e) => setChatbotName(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  placeholder="Enter chatbot name"
+                />
+              </div>
             </div>
           )}
 
-          {activeTab === 'configure' && (
-            <div>
-              <h2 className="text-2xl font-bold">Configure</h2>
-              {/* Add your content here */}
-            </div>
-          )}
         </div>
       </div>
 
@@ -250,12 +255,12 @@ const Configuration = () => {
               textColor={textColor}
               iconColor={iconColor}
               chatWidth={chatWidth}
-              widgetPosition={widgetPosition}
-              horizontalSpacing={horizontalSpacing}
-              verticalSpacing={verticalSpacing}
               botIconCircular={botIconCircular}
               chatIconCircular={chatIconCircular}
               chatIconSize={chatIconSize}
+              botIconImage={botIconImage}
+              chatIconImage={chatIconImage}
+              chatbotName={chatbotName}
             />
           </div>
         )}
@@ -274,14 +279,17 @@ const Configuration = () => {
   );
 };
 
-const TabButton = ({ icon, isActive, onClick }) => (
+const TabButton = ({ icon, label, isActive, onClick }) => (
   <button
     onClick={onClick}
-    className={`flex items-center p-4 w-full text-left ${isActive ? 'bg-white text-blue-600 border-l-4 border-blue-600' : 'text-gray-700 hover:bg-gray-200'
-      }`}
+    className={`flex flex-col items-center p-4 w-full text-left ${
+      isActive ? 'bg-white text-blue-600 border-l-4 border-blue-600' : 'text-gray-700 hover:bg-gray-200'
+    }`}
   >
-    <FontAwesomeIcon icon={icon} className="mr-3" />
+    <FontAwesomeIcon icon={icon} className="" />
+    <span>{label}</span>
   </button>
 );
+
 
 export default Configuration;

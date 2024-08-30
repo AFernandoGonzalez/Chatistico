@@ -10,6 +10,7 @@ import Configuration from './pages/Configuration';
 import Profile from './pages/Profile';
 import { Overview } from './pages/Overview'; // Ensure this is correctly imported
 import ChatHistory from './components/ChatHistory'; // Ensure this is correctly imported
+import Integrations from './pages/Integrations';
 
 const App = () => {
   return (
@@ -30,6 +31,7 @@ const App = () => {
               <Route path="knowledge-base" element={<KnowledgeBase />} />
               <Route path="configuration" element={<Configuration />} />
               <Route path="chat" element={<ChatHistory />} />
+              <Route path="integration" element={<Integrations />} />
             </Route>
           </Route>
         </Routes>

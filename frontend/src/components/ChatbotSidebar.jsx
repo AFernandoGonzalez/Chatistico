@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faChartBar, faCommentDots, faCog, faComments } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faChartBar, faCommentDots, faCog, faComments, faPuzzlePiece } from '@fortawesome/free-solid-svg-icons'; // Import new icon
 import { motion } from 'framer-motion';
 
 const ChatbotSidebar = () => {
@@ -24,6 +24,8 @@ const ChatbotSidebar = () => {
           <NavItem icon={faComments} label="Knowledge Base" isExpanded={isExpanded} to={`/dashboard/chatbot/${id}/knowledge-base`} />
           <NavItem icon={faCog} label="Configuration" isExpanded={isExpanded} to={`/dashboard/chatbot/${id}/configuration`} />
           <NavItem icon={faCommentDots} label="Chat" isExpanded={isExpanded} to={`/dashboard/chatbot/${id}/chat`} />
+          <NavItem icon={faPuzzlePiece} label="Integration" isExpanded={isExpanded} to={`/dashboard/chatbot/${id}/integration`} /> {/* New item */}
+
         </nav>
       </div>
     </motion.div>
