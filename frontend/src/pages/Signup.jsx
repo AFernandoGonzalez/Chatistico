@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState, useContext } from 'react';
+import { AuthContext } from '../context/AuthContext'; // Import the AuthContext
 
 const Signup = () => {
+  const { signup } = useContext(AuthContext); // Use signup function from AuthContext
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('https://your-backend-url.com/api/auth/signup', { email, password });
+      await signup(email, password); // Call signup function from context
       alert('Signup successful!');
     } catch (error) {
       console.error('Error signing up:', error);
+      alert('Error signing up: ' + error.message);
     }
   };
 

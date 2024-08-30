@@ -1,34 +1,55 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faFilter, faChartPie, faSyncAlt, faEye, faTrashAlt, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { AuthContext } from '../context/AuthContext'; // Import the AuthContext
+import { getQAPairs, uploadQAPair, updateQAPair, deleteQAPair } from '../services/api'; // Import API functions
 
 const KnowledgeBase = () => {
+  const { user } = useContext(AuthContext); // Use AuthContext to get the current user
   const [activeTab, setActiveTab] = useState('text');
-  const [entries, setEntries] = useState([
-    { id: 1, type: 'text', content: 'hi', characters: 2, status: 'Processed', dateAdded: 'August 27, 2024' },
-    { id: 2, type: 'faq', content: 'What is AI?', characters: 12, status: 'Pending', dateAdded: 'August 28, 2024' },
-  ]);
+  const [entries, setEntries] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedType, setSelectedType] = useState('text');
   const modalRef = useRef(null);
 
-  // Handle adding a new entry
-  const handleAddEntry = (newEntry) => {
-    setEntries([...entries, newEntry]);
-    setShowModal(false); // Close modal after adding entry
+  useEffect(() => {
+    if (user) {
+      fetchQAPairs();
+    }
+  }, [user]);
+
+  const fetchQAPairs = async () => {
+    try {
+      const data = await getQAPairs(user.id);
+      setEntries(data);
+    } catch (error) {
+      console.error('Error fetching Q&A pairs:', error);
+    }
   };
 
-  // Handle deleting an entry
-  const handleDeleteEntry = (id) => {
-    setEntries(entries.filter((entry) => entry.id !== id));
+  const handleAddEntry = async (newEntry) => {
+    try {
+      await uploadQAPair(user.id, newEntry.question, newEntry.answer);
+      fetchQAPairs(); // Refresh the entries
+      setShowModal(false);
+    } catch (error) {
+      console.error('Error uploading Q&A pair:', error);
+    }
   };
 
-  // Handle viewing an entry
+  const handleDeleteEntry = async (id) => {
+    try {
+      await deleteQAPair(id);
+      fetchQAPairs(); // Refresh the entries
+    } catch (error) {
+      console.error('Error deleting Q&A pair:', error);
+    }
+  };
+
   const handleViewEntry = (id) => {
     alert(`Viewing details for entry ${id}`);
   };
 
-  // Close modal when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (modalRef.current && !modalRef.current.contains(event.target)) {
@@ -100,7 +121,6 @@ const DataCard = ({ title, value, color }) => (
 );
 
 const EntriesTable = ({ entries, activeTab, handleDeleteEntry, handleViewEntry }) => {
-  // Filter entries based on the active tab
   const filteredEntries = entries.filter(entry => entry.type === activeTab);
 
   return (

@@ -1,12 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
+import { AuthContext } from '../context/AuthContext'; // Import the AuthContext
+import { updateProfile } from '../services/api'; // Import the API function for updating the profile
 
 const Profile = () => {
+  const { user } = useContext(AuthContext); // Use AuthContext to get the current user
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [notifications, setNotifications] = useState(true);
 
-  const handleSaveSettings = () => {
-    alert('Settings saved successfully!');
+  useEffect(() => {
+    if (user) {
+      setUsername(user.username);
+      setEmail(user.email);
+      // Assume `notifications` setting is part of user data
+      setNotifications(user.notifications || true);
+    }
+  }, [user]);
+
+  const handleSaveSettings = async () => {
+    try {
+      await updateProfile(user.id, { username, email, notifications });
+      alert('Settings saved successfully!');
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      alert('Failed to save settings.');
+    }
   };
 
   return (

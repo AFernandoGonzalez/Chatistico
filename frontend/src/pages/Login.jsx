@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState, useContext } from 'react';
+import { AuthContext } from '../context/AuthContext'; // Import the AuthContext
 
 const Login = () => {
+  const { login } = useContext(AuthContext); // Use login function from AuthContext
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('https://your-backend-url.com/api/auth/login', { email, password });
+      await login(email, password); // Call login function from context
       alert('Login successful!');
     } catch (error) {
       console.error('Error logging in:', error);
+      alert('Error logging in: ' + error.message);
     }
   };
 
