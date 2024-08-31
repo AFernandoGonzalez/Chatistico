@@ -214,3 +214,36 @@ export const logoutUser = async () => {
   });
   return handleErrors(response);
 };
+
+
+export const getConfiguration = async (chatbotId) => {
+  const response = await fetch(`${API_BASE_URL}/configuration?chatbotId=${chatbotId}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch configuration');
+  }
+  return await response.json();
+};
+
+export const saveConfiguration = async (chatbotId, config) => {
+  console.log("Sending config to server: ", config);
+
+  const response = await fetch(`${API_BASE_URL}/configuration?chatbotId=${chatbotId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(config),
+  });
+
+  console.log("Response status: ", response.status);
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Failed to save configuration: ", errorText);
+    throw new Error('Failed to save configuration');
+  }
+  return await response.json();
+};
+
+
+

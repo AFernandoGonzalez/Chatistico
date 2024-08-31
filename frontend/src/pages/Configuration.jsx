@@ -1,30 +1,93 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPalette, faTextHeight, faCog, faSave, faBars, faCommentDots, faRobot, faUserCircle } from '@fortawesome/free-solid-svg-icons';
+import { faPalette, faTextHeight, faSave, faCommentDots, faRobot, faUserCircle } from '@fortawesome/free-solid-svg-icons';
 import ChatbotPreview from '../components/ChatWidgetPreview';
-
+import { getConfiguration, saveConfiguration } from '../services/api';
+import { useParams } from 'react-router-dom';
 const Configuration = () => {
+  const { id: chatbotId } = useParams();
+  console.log('Initial Chatbot ID:', chatbotId);
   const [activeTab, setActiveTab] = useState('design');
   const [primaryColor, setPrimaryColor] = useState('#000000');
   const [textColor, setTextColor] = useState('#ffffff');
   const [iconColor, setIconColor] = useState('#000000');
   const [chatWidth, setChatWidth] = useState(350);
-  const [isChatOpen, setIsChatOpen] = useState(true);
   const [widgetPosition, setWidgetPosition] = useState('br');
   const [horizontalSpacing, setHorizontalSpacing] = useState(0);
   const [verticalSpacing, setVerticalSpacing] = useState(0);
   const [botIconCircular, setBotIconCircular] = useState(false);
   const [chatIconCircular, setChatIconCircular] = useState(false);
   const [chatIconSize, setChatIconSize] = useState(55);
-  const [botIconImage, setBotIconImage] = useState(null);
-  const [chatIconImage, setChatIconImage] = useState(null);
-
+  const [botIconImage, setBotIconImage] = useState('');
+  const [chatIconImage, setChatIconImage] = useState('');
   const [chatbotName, setChatbotName] = useState('Support Bot');
+  const [isChatOpen, setIsChatOpen] = useState(true);
 
+  useEffect(() => {
+    const fetchConfiguration = async () => {
+      try {
+        const data = await getConfiguration(chatbotId);
+        if (data) {
+          setPrimaryColor(data.primary_color || '#000000');
+          setTextColor(data.text_color || '#ffffff');
+          setIconColor(data.icon_color || '#000000');
+          setChatWidth(data.chat_width || 350);
+          setWidgetPosition(data.widget_position || 'br');
+          setHorizontalSpacing(data.horizontal_spacing || 0);
+          setVerticalSpacing(data.vertical_spacing || 0);
+          setBotIconCircular(data.bot_icon_circular || false);
+          setChatIconCircular(data.chat_icon_circular || false);
+          setChatIconSize(data.chat_icon_size || 55);
+          setBotIconImage(data.bot_icon_image || '');
+          setChatIconImage(data.chat_icon_image || '');
+          setChatbotName(data.chatbot_name || 'Support Bot');
+        }
+      } catch (error) {
+        console.error('Error fetching configuration:', error);
+      }
+    };
 
-  const handleSave = () => {
-    alert('Settings saved!');
+    fetchConfiguration();
+  }, [chatbotId]);
+
+  const handleSave = async () => {
+    if (!chatbotId) {
+      alert('Chatbot ID is missing.');
+      return;
+    }
+  
+    if (!chatbotName || !primaryColor || !textColor || !iconColor || chatWidth === undefined) {
+      alert('Please fill out all required fields.');
+      return;
+    }
+  
+    try {
+      const config = {
+        primary_color: primaryColor,
+        text_color: textColor,
+        icon_color: iconColor,
+        chat_width: chatWidth,
+        widget_position: widgetPosition,
+        horizontal_spacing: horizontalSpacing,
+        vertical_spacing: verticalSpacing,
+        bot_icon_circular: botIconCircular,
+        chat_icon_circular: chatIconCircular,
+        chat_icon_size: chatIconSize,
+        bot_icon_image: botIconImage || '',
+        chat_icon_image: chatIconImage || '',
+        chatbot_name: chatbotName || '',
+      };
+  
+      console.log('Saving configuration for chatbotId:', chatbotId);
+  
+      await saveConfiguration(chatbotId, config);
+      alert('Settings saved!');
+    } catch (error) {
+      console.error('Error saving configuration:', error);
+    }
   };
+  
+  
 
   const handleBotIconImageChange = (e) => {
     const file = e.target.files[0];
@@ -52,9 +115,9 @@ const Configuration = () => {
     <div className="flex relative">
       {/* Sidebar Tabs */}
       <div className="w-[60px] bg-gray-100 border-r">
-        <div className="flex flex-col ">
-        <TabButton icon={faPalette} label="Design" isActive={activeTab === 'design'} onClick={() => setActiveTab('design')} />
-        <TabButton icon={faTextHeight} label="Texts" isActive={activeTab === 'texts'} onClick={() => setActiveTab('texts')} />
+        <div className="flex flex-col">
+          <TabButton icon={faPalette} label="Design" isActive={activeTab === 'design'} onClick={() => setActiveTab('design')} />
+          <TabButton icon={faTextHeight} label="Texts" isActive={activeTab === 'texts'} onClick={() => setActiveTab('texts')} />
         </div>
       </div>
 
@@ -233,7 +296,6 @@ const Configuration = () => {
               </div>
             </div>
           )}
-
         </div>
       </div>
 
@@ -282,14 +344,12 @@ const Configuration = () => {
 const TabButton = ({ icon, label, isActive, onClick }) => (
   <button
     onClick={onClick}
-    className={`flex flex-col items-center p-4 w-full text-left ${
-      isActive ? 'bg-white text-blue-600 border-l-4 border-blue-600' : 'text-gray-700 hover:bg-gray-200'
-    }`}
+    className={`flex flex-col items-center p-4 w-full text-left ${isActive ? 'bg-white text-blue-600 border-l-4 border-blue-600' : 'text-gray-700 hover:bg-gray-200'
+      }`}
   >
     <FontAwesomeIcon icon={icon} className="" />
     <span>{label}</span>
   </button>
 );
-
 
 export default Configuration;

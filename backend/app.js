@@ -14,6 +14,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/chatbots', chatbotRoutes)
+app.use('/api/configuration', chatbotRoutes)
 app.use('/api/knowledge-base', knowledgeBaseRoutes);
 
 app.use(errorHandler);

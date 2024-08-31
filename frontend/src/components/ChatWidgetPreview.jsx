@@ -35,7 +35,7 @@ const ChatWidgetPreview = ({
             style={{ backgroundColor: primaryColor }}
           >
             <h3 className="font-bold text-xl" style={{ color: textColor }}>
-            {chatbotName}
+              {chatbotName}
             </h3>
             <button onClick={() => setIsChatOpen(false)} className="" style={{ color: textColor }}>
               <FontAwesomeIcon icon={faTimes} />
@@ -43,43 +43,43 @@ const ChatWidgetPreview = ({
           </div>
 
           {/* Chat Content */}
-<div className="chat-content p-4 flex-1 overflow-y-auto bg-gray-50 h-[470px]">
-  <div className="chat-message space-y-4">
-    
-    {/* First Bot Message with Icon */}
-    <div className="flex items-start">
-      <div
-        className={`flex-shrink-0 w-10 h-10 ${botIconCircular ? 'rounded-full' : 'rounded-md'} bg-cover bg-center mr-3`}
-        style={{ backgroundImage: `url('${botIconImage}')` }}
-      ></div>
-      <div className="message bot bg-gray-200 text-gray-800 p-3 rounded-lg">
-        Hi, how can I help you today?
-      </div>
-    </div>
+          <div className="chat-content p-4 flex-1 overflow-y-auto bg-gray-50 h-[470px]">
+            <div className="chat-message space-y-4">
 
-    {/* User Message */}
-    <div className="flex items-start justify-end">
-      <div
-        className="message user p-3 rounded-lg"
-        style={{ backgroundColor: primaryColor, color: textColor }}
-      >
-        How can I track my order?
-      </div>
-    </div>
+              {/* First Bot Message with Icon */}
+              <div className="flex items-start">
+                <div
+                  className={`flex-shrink-0 w-10 h-10 ${botIconCircular ? 'rounded-full' : 'rounded-md'} bg-cover bg-center mr-3`}
+                  style={{ backgroundImage: `url('${botIconImage}')` }}
+                ></div>
+                <div className="message bot bg-gray-200 text-gray-800 p-3 rounded-lg">
+                  Hi, how can I help you today?
+                </div>
+              </div>
 
-    {/* Second Bot Message with Icon */}
-    <div className="flex items-start">
-      <div
-        className={`flex-shrink-0 w-10 h-10 ${botIconCircular ? 'rounded-full' : 'rounded-md'} bg-cover bg-center mr-3`}
-        style={{ backgroundImage: `url('${botIconImage}')` }}
-      ></div>
-      <div className="message bot bg-gray-200 text-gray-800 p-3 rounded-lg">
-        To track your order's shipment, go to the Orders page in your account and click on
-        the <strong>Track</strong> button next to the order.
-      </div>
-    </div>
-  </div>
-</div>
+              {/* User Message */}
+              <div className="flex items-start justify-end">
+                <div
+                  className="message user p-3 rounded-lg"
+                  style={{ backgroundColor: primaryColor, color: textColor }}
+                >
+                  How can I track my order?
+                </div>
+              </div>
+
+              {/* Second Bot Message with Icon */}
+              <div className="flex items-start">
+                <div
+                  className={`flex-shrink-0 w-10 h-10 ${botIconCircular ? 'rounded-full' : 'rounded-md'} bg-cover bg-center mr-3`}
+                  style={{ backgroundImage: `url('${botIconImage}')` }}
+                ></div>
+                <div className="message bot bg-gray-200 text-gray-800 p-3 rounded-lg">
+                  To track your order's shipment, go to the Orders page in your account and click on
+                  the <strong>Track</strong> button next to the order.
+                </div>
+              </div>
+            </div>
+          </div>
 
 
 
