@@ -4,9 +4,9 @@ import { faPalette, faTextHeight, faSave, faCommentDots, faRobot, faUserCircle }
 import ChatbotPreview from '../components/ChatWidgetPreview';
 import { getConfiguration, saveConfiguration } from '../services/api';
 import { useParams } from 'react-router-dom';
+
 const Configuration = () => {
   const { id: chatbotId } = useParams();
-  console.log('Initial Chatbot ID:', chatbotId);
   const [activeTab, setActiveTab] = useState('design');
   const [primaryColor, setPrimaryColor] = useState('#000000');
   const [textColor, setTextColor] = useState('#ffffff');
@@ -22,9 +22,11 @@ const Configuration = () => {
   const [chatIconImage, setChatIconImage] = useState('');
   const [chatbotName, setChatbotName] = useState('Support Bot');
   const [isChatOpen, setIsChatOpen] = useState(true);
+  const [loading, setLoading] = useState(true); // Add loading state
 
   useEffect(() => {
     const fetchConfiguration = async () => {
+      setLoading(true); // Set loading to true before fetching data
       try {
         const data = await getConfiguration(chatbotId);
         if (data) {
@@ -44,6 +46,8 @@ const Configuration = () => {
         }
       } catch (error) {
         console.error('Error fetching configuration:', error);
+      } finally {
+        setLoading(false); // Set loading to false after fetching data
       }
     };
 
@@ -55,12 +59,12 @@ const Configuration = () => {
       alert('Chatbot ID is missing.');
       return;
     }
-  
+
     if (!chatbotName || !primaryColor || !textColor || !iconColor || chatWidth === undefined) {
       alert('Please fill out all required fields.');
       return;
     }
-  
+
     try {
       const config = {
         primary_color: primaryColor,
@@ -77,17 +81,15 @@ const Configuration = () => {
         chat_icon_image: chatIconImage || '',
         chatbot_name: chatbotName || '',
       };
-  
+
       console.log('Saving configuration for chatbotId:', chatbotId);
-  
+
       await saveConfiguration(chatbotId, config);
       alert('Settings saved!');
     } catch (error) {
       console.error('Error saving configuration:', error);
     }
   };
-  
-  
 
   const handleBotIconImageChange = (e) => {
     const file = e.target.files[0];
@@ -110,6 +112,10 @@ const Configuration = () => {
       reader.readAsDataURL(file);
     }
   };
+
+  if (loading) {
+    return <div>Loading...</div>; // Show a loading indicator while fetching data
+  }
 
   return (
     <div className="flex relative">

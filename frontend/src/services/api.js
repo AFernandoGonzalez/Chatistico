@@ -9,29 +9,34 @@ const handleErrors = (response) => {
 };
 
 // Chat APIs
-
 // Sends a message and retrieves a response from the chatbot
-export const sendMessage = async (userId, message) => {
+export const sendMessage = async (chatId, text, role_id) => {
   const response = await fetch(`${API_BASE_URL}/chat/message`, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ userId, message }),
+    body: JSON.stringify({ chatId, text, role_id }),
   });
   return handleErrors(response);
 };
 
-// Retrieves chat history for a specific user
-export const getChatHistory = async (userId) => {
-  const response = await fetch(`${API_BASE_URL}/chat/history?userId=${userId}`);
+export const getChatHistory = async (userId, chatbotId) => {
+  const response = await fetch(`${API_BASE_URL}/chat/history?userId=${userId}&chatbotId=${chatbotId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
   return handleErrors(response);
 };
 
-// Knowledge Base APIs
+
+
+
+
 
 // Knowledge Base APIs
-
 // Fetches Q&A pairs for a specific chatbot
 export const getQAPairs = async (chatbotId) => {
   const response = await fetch(`${API_BASE_URL}/knowledge-base?chatbotId=${chatbotId}`);

@@ -17,7 +17,7 @@ const Dashboard = () => {
   // Handle chatbot creation
   const handleCreateChatbot = async () => {
     if (!newChatbotName || !newChatbotDescription) {
-      setError('Name and description are required.');
+      setError('handleCreateChatbot: Name and description are required.');
       return;
     }
 
@@ -50,7 +50,7 @@ const Dashboard = () => {
   // Handle chatbot renaming
   const handleRenameChatbot = async () => {
     if (!newChatbotName || !newChatbotDescription) {
-      setError('Name and description are required.');
+      setError('handleRenameChatbot : Name and description are required.');
       return;
     }
 

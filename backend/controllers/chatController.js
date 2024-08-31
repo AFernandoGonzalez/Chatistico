@@ -1,44 +1,59 @@
 const supabase = require('../config/db');
-const { saveChatLog } = require('../models/Chat');
 
-exports.sendMessage = async (req, res) => {
-  const { userId, message } = req.body;
-
+// Updated getChatHistory controller
+exports.getChatHistory = async (req, res) => {
   try {
-    // Retrieve the knowledge base for the user
-    const { data: qaPairs, error } = await supabase.from('knowledge_base').select('*').eq('user_id', userId);
+    const { userId, chatbotId } = req.query;
 
-    if (error) throw error;
-
-    // Find a matching answer based on the user's message
-    const matchedQA = qaPairs.find(qa => qa.question.toLowerCase() === message.toLowerCase());
-
-    let reply;
-    if (matchedQA) {
-      reply = matchedQA.answer;
-    } else {
-      reply = "I am sorry, I don't have an answer to that question.";
+    if (!userId || !chatbotId) {
+      return res.status(400).json({ error: 'User ID and Chatbot ID are required' });
     }
 
-    // Save chat log
-    await saveChatLog(userId, message, reply);
+    // Fetch all chats associated with the user and chatbot
+    let chatQuery = supabase
+      .from('chats')
+      .select(`
+        id, last_timestamp, chatbot_version, customer_id, important, closed,
+        messages (*)
+      `)
+      .eq('user_id', userId)
+      .eq('chatbot_id', chatbotId);
 
-    res.status(200).json({ reply });
+    const { data: chats, error } = await chatQuery;
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.status(200).json({ chats });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to generate a response' });
+    console.error('Failed to fetch chat history:', error);
+    res.status(500).json({ error: 'Failed to fetch chat history' });
   }
 };
 
-exports.getChatHistory = async (req, res) => {
-  const { userId } = req.query;
+
+
+
+// Send a message and add it to the chat history
+exports.sendMessage = async (req, res) => {
+  const { chatId, text, role_id } = req.body;
+
+  if (!chatId || !text || !role_id) {
+    return res.status(400).json({ error: 'Chat ID, text, and role ID are required.' });
+  }
 
   try {
-    const { data: chatLogs, error } = await supabase.from('chat_logs').select('*').eq('user_id', userId);
+    // Insert a new message into the messages table
+    const { data: message, error: messageError } = await supabase
+      .from('messages')
+      .insert([{ chat_id: chatId, text, role_id, timestamp: new Date().toISOString() }])
+      .single();
 
-    if (error) throw error;
-    
-    res.status(200).json({ chatLogs });
+    if (messageError) throw messageError;
+
+    res.status(201).json({ message });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to retrieve chat history' });
+    res.status(500).json({ error: error.message });
   }
 };

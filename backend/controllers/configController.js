@@ -22,10 +22,6 @@ exports.saveConfiguration = async (req, res) => {
     const { chatbotId } = req.query;  // Extract chatbotId from query parameters
     const config = req.body;
   
-    console.log('saveConfiguration function called');
-    console.log('Request body:', req.body);
-    console.log('chatbotId:', chatbotId);
-  
     if (!chatbotId) {
       return res.status(400).json({ error: 'Missing chatbotId parameter' });
     }

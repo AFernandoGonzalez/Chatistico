@@ -6,6 +6,6 @@ const configController = require('../controllers/configController');
 router.get('/', configController.getConfiguration);
 
 // Save configuration
-router.post('/save', configController.saveConfiguration);
+router.post('/', configController.saveConfiguration);
 
 module.exports = router;

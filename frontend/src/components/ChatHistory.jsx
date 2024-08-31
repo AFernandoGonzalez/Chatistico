@@ -1,38 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faStar, faEnvelope, faUserCircle } from '@fortawesome/free-solid-svg-icons';
+import { getChatHistory } from '../services/api';
+import { AuthContext } from '../context/AuthContext';
+import { useParams } from 'react-router-dom';
 
 const ChatHistory = () => {
+  const { id: chatbotId } = useParams();
   const [chatLogs, setChatLogs] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedChat, setSelectedChat] = useState(null);
+  const [chats, setChats] = useState([]);
 
-  // Mock users data
-  const users = [
-    { id: 1, name: 'Alice Johnson', timestamp: '2h ago' },
-    { id: 2, name: 'Bob Smith', timestamp: '4h ago' },
-    { id: 3, name: 'Charlie Brown', timestamp: '1d ago' },
-  ];
+  // Get the user from AuthContext
+  const { user } = useContext(AuthContext);
 
-  // Mock chat logs
-  const mockChatLogs = {
-    1: [
-      { sender: 'user', message: 'Hi Alice!', timestamp: '2h ago' },
-      { sender: 'bot', message: 'Hello! How can I help you?', timestamp: '2h ago' },
-    ],
-    2: [
-      { sender: 'user', message: 'Hey Bob!', timestamp: '4h ago' },
-      { sender: 'bot', message: 'Hi! Need any assistance?', timestamp: '4h ago' },
-    ],
-    3: [
-      { sender: 'user', message: 'Good morning, Charlie!', timestamp: '1d ago' },
-      { sender: 'bot', message: 'Good morning! What can I do for you today?', timestamp: '1d ago' },
-    ],
-  };
+  console.log("user: ", user );
+  console.log("chatbotid", chatbotId);
+  
 
-  // Handler for selecting a user
-  const handleUserSelect = (user) => {
-    setSelectedUser(user);
-    setChatLogs(mockChatLogs[user.id]);
+  useEffect(() => {
+    const fetchChatHistory = async () => {
+      if (user && user.id && chatbotId) {
+        try {
+          const response = await getChatHistory(user.id, chatbotId);
+          setChats(response.chats);
+        } catch (error) {
+          console.error('Failed to fetch chat history:', error);
+        }
+      }
+    };
+
+    fetchChatHistory();
+  }, [user, chatbotId]);
+
+  // Handler for selecting a chat
+  const handleChatSelect = (chat) => {
+    setSelectedChat(chat);
+    setChatLogs(chat.messages);
   };
 
   return (
@@ -41,23 +45,24 @@ const ChatHistory = () => {
       <div className="w-1/4 bg-white border-r p-4 overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">Conversations</h2>
-          {/* <button className="text-blue-500">Most recent ▼</button> */}
         </div>
         <ul className="space-y-4">
-          {users.map((user) => (
+          {chats.map((chat) => (
             <li
-              key={user.id}
-              onClick={() => handleUserSelect(user)}
-              className={`p-2 flex items-center cursor-pointer rounded-md ${
-                selectedUser && selectedUser.id === user.id ? 'bg-blue-100' : 'hover:bg-gray-100'
-              }`}
+              key={chat.id}
+              onClick={() => handleChatSelect(chat)}
+              className={`p-2 flex items-center cursor-pointer rounded-md ${selectedChat && selectedChat.id === chat.id ? 'bg-blue-100' : 'hover:bg-gray-100'
+                }`}
             >
               <FontAwesomeIcon icon={faUserCircle} className="text-gray-400 mr-3 text-2xl" />
               <div className="flex-grow">
-                <p className="font-semibold">{user.name}</p>
-                <p className="text-sm text-gray-600">Message preview not available</p>
+                <p className="font-semibold">
+                  Chat with {chat.customer?.name || `Customer ID: ${chat.customer_id}`}
+                </p>
+                <p className="text-sm text-gray-600">
+                  Last message: {new Date(chat.last_timestamp).toLocaleString()}
+                </p>
               </div>
-              <span className="text-xs text-gray-400">{user.timestamp}</span>
             </li>
           ))}
         </ul>
@@ -65,12 +70,13 @@ const ChatHistory = () => {
 
       {/* Main Chat Area */}
       <div className="flex-grow flex flex-col p-6 bg-gray-50">
-        {selectedUser ? (
+        {selectedChat ? (
           <>
             <div className="flex items-center mb-4">
               <div className="flex-grow">
-                <h2 className="text-lg font-semibold">{selectedUser.name}</h2>
-                <button className="text-blue-500">View details</button>
+                <h2 className="text-lg font-semibold">
+                  Chat with {selectedChat.customer?.name || `Customer ID: ${selectedChat.customer_id}`}
+                </h2>
               </div>
               <div className="flex space-x-3">
                 {/* Action buttons */}
@@ -84,15 +90,14 @@ const ChatHistory = () => {
             </div>
             <div className="flex-grow overflow-y-auto">
               {chatLogs.map((log, index) => (
-                <div key={index} className={`flex items-start mb-4 ${log.sender === 'user' ? 'justify-start' : 'justify-end'}`}>
-                  <div className={`max-w-xs p-4 rounded-lg ${log.sender === 'user' ? 'bg-gray-200' : 'bg-blue-500 text-white'}`}>
-                    <p className="text-sm">{log.message}</p>
-                    <p className="text-xs text-gray-400 mt-1">{log.timestamp}</p>
+                <div key={index} className={`flex items-start mb-4 ${log.role_id === 2 ? 'justify-start' : 'justify-end'}`}>
+                  <div className={`max-w-xs p-4 rounded-lg ${log.role_id === 2 ? 'bg-gray-200' : 'bg-blue-500 text-white'}`}>
+                    <p className="text-sm">{log.text}</p>
+                    <p className="text-xs text-gray-400 mt-1">{new Date(log.timestamp).toLocaleString()}</p>
                   </div>
                 </div>
               ))}
             </div>
-            
           </>
         ) : (
           <div className="flex justify-center items-center h-full">

@@ -22,7 +22,7 @@ const getChatbots = async (req, res) => {
 const createChatbot = async (req, res) => {
   const { name, description } = req.body;
   if (!name || !description) {
-    return res.status(400).json({ message: 'Name and description are required.' });
+    return res.status(400).json({ message: 'Name is required.' });
   }
 
   try {
@@ -92,7 +92,7 @@ const deleteChatbot = async (req, res) => {
   };
   
   // Rename a chatbot
-  const renameChatbot = async (req, res) => {
+const renameChatbot = async (req, res) => {
     const { id } = req.params;
     const { name, description } = req.body;
   
