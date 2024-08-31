@@ -84,16 +84,19 @@ export const deleteQAPair = async (id) => {
 };
 
 // Creates a new chatbot
-export const createChatbot = async (name, description) => {
+// Update the API function to create a chatbot with userId
+export const createChatbot = async (userId, name, description) => {
   const response = await fetch(`${API_BASE_URL}/chatbots`, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ name, description }),
+    body: JSON.stringify({ userId, name, description }), // Include userId in the request body
   });
+
   return handleErrors(response);
 };
+
 
 // Fetches a list of all chatbots
 export const getChatbots = async () => {

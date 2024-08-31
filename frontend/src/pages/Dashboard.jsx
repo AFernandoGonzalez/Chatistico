@@ -2,9 +2,14 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChatbotContext } from '../context/ChatbotContext';
 import { createChatbot, deleteChatbot, renameChatbot } from '../services/api';
+import { AuthContext } from '../context/AuthContext'; 
 
 const Dashboard = () => {
-  const { chatbots, setChatbots } = useContext(ChatbotContext); // Use context for chatbots
+  const { chatbots, setChatbots } = useContext(ChatbotContext);
+  const { user } = useContext(AuthContext);
+
+  console.log("user: ", user);
+  
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -21,8 +26,14 @@ const Dashboard = () => {
       return;
     }
 
+    if (!user) {
+      setError('User must be logged in to create a chatbot.');
+      return;
+    }
+
     try {
-      const newChatbot = await createChatbot(newChatbotName, newChatbotDescription);
+      // Pass userId to the createChatbot API function
+      const newChatbot = await createChatbot(user.id, newChatbotName, newChatbotDescription);
       setChatbots([...chatbots, newChatbot]);
       setIsModalOpen(false);
       setNewChatbotName('');
@@ -33,6 +44,7 @@ const Dashboard = () => {
       setError('Failed to create chatbot. Please try again.');
     }
   };
+
 
   // Handle chatbot deletion
   const handleDeleteChatbot = async (id) => {

@@ -19,32 +19,59 @@ const getChatbots = async (req, res) => {
 };
 
 // Create a new chatbot
+// Create a new chatbot and default configuration
 const createChatbot = async (req, res) => {
-  const { name, description } = req.body;
+  const { userId, name, description } = req.body;
+
   if (!name || !description) {
-    return res.status(400).json({ message: 'Name is required.' });
+    return res.status(400).json({ message: 'Name and description are required.' });
   }
 
   try {
-    const { data: newChatbot, error } = await supabase
+    // Begin a transaction
+    const { data: newChatbot, error: chatbotError } = await supabase
       .from('chatbots')
-      .insert([{ name, description }])
-      .select('*'); // Ensure the new chatbot data is returned
+      .insert([{ user_id: userId, name, description }])
+      .select('*')
+      .single(); // Use single() to get a single object instead of an array
 
-    if (error) {
-      throw error;
+    if (chatbotError) {
+      throw chatbotError;
     }
 
-    if (!newChatbot || newChatbot.length === 0) {
-      return res.status(400).json({ message: 'Failed to create chatbot. No data returned.' });
+    // Insert default configuration
+    const defaultConfig = {
+      chatbot_id: newChatbot.id,
+      primary_color: '#000000',
+      text_color: '#ffffff',
+      icon_color: '#000000',
+      chat_width: 350,
+      widget_position: 'br',
+      horizontal_spacing: 0,
+      vertical_spacing: 0,
+      bot_icon_circular: false,
+      chat_icon_circular: false,
+      chat_icon_size: 55,
+      bot_icon_image: null,
+      chat_icon_image: null,
+      chatbot_name: name || 'Support Bot',
+    };
+
+    const { error: configError } = await supabase
+      .from('chatbot_configurations')
+      .insert([defaultConfig]);
+
+    if (configError) {
+      throw configError;
     }
 
-    res.status(201).json(newChatbot[0]);
+    res.status(201).json(newChatbot);
   } catch (error) {
     console.error('Error creating chatbot:', error);
     res.status(500).json({ message: 'Failed to create chatbot' });
   }
 };
+
 
 // Get a chatbot by ID
 const getChatbotById = async (req, res) => {
