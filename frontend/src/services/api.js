@@ -12,7 +12,7 @@ const handleErrors = (response) => {
 
 // Sends a message and retrieves a response from the chatbot
 export const sendMessage = async (userId, message) => {
-  const response = await fetch(`${API_BASE_URL}/api/chat/message`, {
+  const response = await fetch(`${API_BASE_URL}/chat/message`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -24,45 +24,52 @@ export const sendMessage = async (userId, message) => {
 
 // Retrieves chat history for a specific user
 export const getChatHistory = async (userId) => {
-  const response = await fetch(`${API_BASE_URL}/api/chat/history?userId=${userId}`);
+  const response = await fetch(`${API_BASE_URL}/chat/history?userId=${userId}`);
   return handleErrors(response);
 };
 
 // Knowledge Base APIs
 
-// Uploads a Q&A pair to the knowledge base
-export const uploadQAPair = async (userId, question, answer) => {
-  const response = await fetch(`${API_BASE_URL}/api/knowledge-base/upload`, {
+// Knowledge Base APIs
+
+// Fetches Q&A pairs for a specific chatbot
+export const getQAPairs = async (chatbotId) => {
+  const response = await fetch(`${API_BASE_URL}/knowledge-base?chatbotId=${chatbotId}`);
+  const data = await handleErrors(response);
+  return data; // Ensure this is an array
+};
+export const uploadQAPair = async (chatbotId, type, data) => {
+  const body = { chatbotId, type, ...data };
+
+  console.log("uploadQAPair data: ", data);
+  
+  const response = await fetch(`${API_BASE_URL}/knowledge-base/upload`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ userId, question, answer }),
+    body: JSON.stringify(body),
   });
+
   return handleErrors(response);
 };
-
-// Fetches Q&A pairs for a specific user
-export const getQAPairs = async (userId) => {
-  const response = await fetch(`${API_BASE_URL}/api/knowledge-base?userId=${userId}`);
-  return handleErrors(response);
-};
-
 // Updates a specific Q&A pair
-export const updateQAPair = async (id, question, answer) => {
-  const response = await fetch(`${API_BASE_URL}/api/knowledge-base/${id}`, {
+export const updateQAPair = async (id, type, data) => {
+  const body = { type, ...data }; // Include type to distinguish what is being updated
+
+  const response = await fetch(`${API_BASE_URL}/knowledge-base/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ question, answer }),
+    body: JSON.stringify(body),
   });
+  
   return handleErrors(response);
 };
-
 // Deletes a specific Q&A pair
 export const deleteQAPair = async (id) => {
-  const response = await fetch(`${API_BASE_URL}/api/knowledge-base/${id}`, {
+  const response = await fetch(`${API_BASE_URL}/knowledge-base/${id}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
@@ -71,24 +78,44 @@ export const deleteQAPair = async (id) => {
   return handleErrors(response);
 };
 
-// Chatbot APIs
+// Creates a new chatbot
+export const createChatbot = async (name, description) => {
+  const response = await fetch(`${API_BASE_URL}/chatbots`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ name, description }),
+  });
+  return handleErrors(response);
+};
 
 // Fetches a list of all chatbots
 export const getChatbots = async () => {
-  const response = await fetch(`${API_BASE_URL}/api/chatbots`);
+  const response = await fetch(`${API_BASE_URL}/chatbots`);
   return handleErrors(response);
 };
 
 // Fetches details of a specific chatbot
 export const getChatbotById = async (id) => {
-  const response = await fetch(`${API_BASE_URL}/api/chatbots/${id}`);
+  const response = await fetch(`${API_BASE_URL}/chatbots/${id}`);
   return handleErrors(response);
 };
 
-// Creates a new chatbot
-export const createChatbot = async (name, description) => {
-  const response = await fetch(`${API_BASE_URL}/api/chatbots`, {
-    method: "POST",
+export const deleteChatbot = async (id) => {
+  const response = await fetch(`${API_BASE_URL}/chatbots/${id}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  return handleErrors(response);
+};
+
+// Renames a chatbot
+export const renameChatbot = async (id, name, description) => {
+  const response = await fetch(`${API_BASE_URL}/chatbots/${id}`, {
+    method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
@@ -101,13 +128,13 @@ export const createChatbot = async (name, description) => {
 
 // Fetches the profile of the current user
 export const getUserProfile = async () => {
-  const response = await fetch(`${API_BASE_URL}/api/user/profile`);
+  const response = await fetch(`${API_BASE_URL}/user/profile`);
   return handleErrors(response);
 };
 
 // Updates the profile of the current user
 export const updateUserProfile = async (username, email, notifications) => {
-  const response = await fetch(`${API_BASE_URL}/api/user/profile`, {
+  const response = await fetch(`${API_BASE_URL}/user/profile`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -121,7 +148,7 @@ export const updateUserProfile = async (username, email, notifications) => {
 
 // Updates the user profile based on the provided information
 export const updateProfile = async (userId, { username, email, notifications }) => {
-  const response = await fetch(`${API_BASE_URL}/api/user/profile/${userId}`, {
+  const response = await fetch(`${API_BASE_URL}/user/profile/${userId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -135,13 +162,13 @@ export const updateProfile = async (userId, { username, email, notifications }) 
 
 // Fetches integration settings for a specific chatbot
 export const getIntegrationSettings = async (chatbotId) => {
-  const response = await fetch(`${API_BASE_URL}/api/integrations/${chatbotId}`);
+  const response = await fetch(`${API_BASE_URL}/integrations/${chatbotId}`);
   return handleErrors(response);
 };
 
 // Updates integration settings for a specific chatbot
 export const updateIntegrationSettings = async (chatbotId, settings) => {
-  const response = await fetch(`${API_BASE_URL}/api/integrations/${chatbotId}`, {
+  const response = await fetch(`${API_BASE_URL}/integrations/${chatbotId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -155,7 +182,7 @@ export const updateIntegrationSettings = async (chatbotId, settings) => {
 
 // Logs in the user
 export const loginUser = async (email, password) => {
-  const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+  const response = await fetch(`${API_BASE_URL}/auth/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -167,7 +194,7 @@ export const loginUser = async (email, password) => {
 
 // Signs up a new user
 export const signupUser = async (email, password) => {
-  const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
+  const response = await fetch(`${API_BASE_URL}/auth/signup`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -179,7 +206,7 @@ export const signupUser = async (email, password) => {
 
 // Logs out the user
 export const logoutUser = async () => {
-  const response = await fetch(`${API_BASE_URL}/api/auth/logout`, {
+  const response = await fetch(`${API_BASE_URL}/auth/logout`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

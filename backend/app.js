@@ -3,6 +3,7 @@ const cors = require('cors');
 const { errorHandler } = require('./middlewares/errorMiddleware');
 const authRoutes = require('./routes/authRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const chatbotRoutes = require('./routes/chatbotRoutes');
 const knowledgeBaseRoutes = require('./routes/knowledgeBaseRoutes');
 
 const app = express();
@@ -12,6 +13,7 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/chatbots', chatbotRoutes)
 app.use('/api/knowledge-base', knowledgeBaseRoutes);
 
 app.use(errorHandler);

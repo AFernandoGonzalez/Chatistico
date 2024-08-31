@@ -1,3 +1,5 @@
+// src/context/AuthContext.js
+
 import React, { createContext, useState, useEffect } from 'react';
 import { loginUser, signupUser, logoutUser } from '../services/api';
 
@@ -15,6 +17,9 @@ export const AuthProvider = ({ children }) => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
+    } else {
+      // Mock user data for testing without real authentication
+      setUser({ id: 1, email: 'test@example.com' });
     }
     setLoading(false);
   }, []);

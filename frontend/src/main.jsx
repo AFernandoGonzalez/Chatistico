@@ -14,12 +14,12 @@ import { ChatbotProvider } from './context/ChatbotContext';
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     {/* Wrap the App component with context providers */}
-    {/* <AuthProvider> */}
+    <AuthProvider>
       {/* <UserProvider> */}
         <ChatbotProvider>
           <App />
         </ChatbotProvider>
       {/* </UserProvider> */}
-    {/* </AuthProvider> */}
+    </AuthProvider>
   </StrictMode>
 );
