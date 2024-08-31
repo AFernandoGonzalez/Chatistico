@@ -140,5 +140,58 @@ const renameChatbot = async (req, res) => {
     }
   };
 
+
+const getChatbotWidget = async (req, res) => {
+  const { id } = req.query;
+
+  if (!id) {
+    return res.status(400).send('Chatbot ID is required');
+  }
+
+  try {
+    const { data: config, error } = await supabase
+      .from('chatbot_configurations')
+      .select('*')
+      .eq('chatbot_id', id)
+      .single();
+
+    if (error || !config) {
+      throw new Error('Failed to fetch configuration');
+    }
+
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Chatbot Widget</title>
+        <style>
+          body { margin: 0; }
+          #chatbot-container { 
+            width: 100%; 
+            height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            background-color: ${config.primary_color}; /* Use configuration */
+          }
+        </style>
+      </head>
+      <body>
+        <div id="chatbot-container">
+          <p>Chatbot Widget for ID: ${id}</p>
+          <!-- Apply more configuration settings here -->
+        </div>
+      </body>
+      </html>
+    `);
+  } catch (error) {
+    res.status(500).send('Failed to load chatbot widget');
+  }
+};
+
+
+
 module.exports = { getChatbots, createChatbot, getChatbotById, deleteChatbot,
-    renameChatbot };
+  renameChatbot, getChatbotWidget };
