@@ -1,9 +1,8 @@
 const express = require('express');
-const { getChatbots, createChatbot, getChatbotById, deleteChatbot, renameChatbot, getChatbotWidget } = require('../controllers/chatbotController');
+const { getChatbots, createChatbot, getChatbotById, deleteChatbot, renameChatbot } = require('../controllers/chatbotController');
 
 const router = express.Router();
 
-router.get('/widget', getChatbotWidget);
 router.get('/', getChatbots);
 router.post('/', createChatbot);
 router.get('/:id', getChatbotById);
