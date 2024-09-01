@@ -11,8 +11,6 @@ import Profile from './pages/Profile';
 import { Overview } from './pages/Overview'; 
 import ChatHistory from './components/ChatHistory';
 import Integrations from './pages/Integrations';
-import ChatWidget from './components/ChatWidget';
-import ChatWidgetPreview from './components/ChatWidgetPreview';
 
 const App = () => {
   return (
@@ -21,9 +19,7 @@ const App = () => {
         <Routes>
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/widget/:id" element={<ChatWidgetPreview />} />
 
-          {/* Dashboard and its children routes */}
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<DashboardPage />} />
             <Route path="profile" element={<Profile />} />
