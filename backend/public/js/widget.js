@@ -1,1 +1,0 @@
-import{B as e,j as t,r as o,C as n}from"./assets/index-bz0dMK4v.js";const r=window.chatlingConfig||{};e(document.getElementById("root")).render(t.jsx(o.StrictMode,{children:t.jsx(n,{config:r})}),document.getElementById("chatling-widget-container"));
