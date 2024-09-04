@@ -1,6 +1,15 @@
-// widgetLoader.js
 (function () {
     let isChatOpen = false;
+    let config = {};  // Define config globally
+    let messages = []; // Store messages locally
+    let chatId = null; // Initialize chatId dynamically
+    let userId = getOrCreateUserId(); // Initialize userId dynamically
+    let role_id = 2; // Default role_id for customer
+
+    // Get script element and chatbot ID
+    const scriptTag = document.currentScript;
+    const chatbotId = scriptTag.getAttribute('data-widget-id');
+    const backendUrl = 'http://localhost:8000/api/configuration'; // Your backend API endpoint
 
     function toggleChat() {
         isChatOpen = !isChatOpen;
@@ -24,7 +33,9 @@
         document.head.appendChild(link);
     }
 
-    function loadChatbot(config) {
+    function loadChatbot(configuration) {
+        config = configuration;  // Assign the fetched configuration to the global config variable
+
         // Create chatbot container
         const chatbotContainer = document.createElement('div');
         chatbotContainer.id = 'chatbot-container';
@@ -115,45 +126,79 @@
 
     // Fetch chat history
     function fetchChatHistory() {
-        const userId = '1'; // Replace with actual user ID
-        const chatbotId = '1'; // Replace with actual chatbot ID
         const backendUrl = 'http://localhost:8000/api/chat/history'; // Your backend API endpoint
 
-        fetch(`${backendUrl}?userId=${userId}&chatbotId=${chatbotId}`)
+        fetch(`${backendUrl}?chatbotId=${chatbotId}&userId=${userId}`)
             .then(response => response.json())
             .then(data => {
                 if (data.error) throw new Error(data.error);
-                displayMessages(data.chats);
+                messages = data.chats[0].messages || []; // Store messages locally
+                chatId = data.chats[0].id; // Set chatId dynamically
+                displayMessages(messages);
             })
             .catch(error => console.error('Error fetching chat history:', error));
     }
 
     // Display fetched chat messages
-    function displayMessages(chats) {
+    function displayMessages(messages) {
         const chatContent = document.getElementById('chat-content');
         chatContent.innerHTML = ''; // Clear existing content
 
-        chats.forEach(chat => {
-            chat.messages.forEach(message => {
-                const messageElement = document.createElement('div');
-                messageElement.className = message.role_id === 'user' ? 'message user p-3 rounded-lg' : 'message bot bg-gray-200 text-gray-800 p-3 rounded-lg';
-                messageElement.textContent = message.text;
-                messageElement.style.backgroundColor = message.role_id === 'user' ? '#0000FF' : '#F0F0F0'; // User messages in blue, bot messages in grey
-                messageElement.style.color = message.role_id === 'user' ? '#FFFFFF' : '#000000'; // Text color based on role
-                chatContent.appendChild(messageElement);
-            });
+        messages.forEach(message => {
+            const messageWrapper = document.createElement('div');
+            if (message.role_id === 2) {  // Assuming role_id 2 is for the user/customer
+                // User Message
+                messageWrapper.className = 'flex items-start justify-end';
+                const userMessage = document.createElement('div');
+                userMessage.className = 'message user p-3 rounded-lg';
+                userMessage.style.backgroundColor = config.primary_color;
+                userMessage.style.color = config.text_color;
+                userMessage.textContent = message.text;
+                messageWrapper.appendChild(userMessage);
+            } else {
+                // Bot Message
+                messageWrapper.className = 'flex items-start';
+                const botIcon = document.createElement('div');
+                botIcon.className = `flex-shrink-0 w-10 h-10 ${config.botIconCircular ? 'rounded-full' : 'rounded-md'} bg-cover bg-center mr-3`;
+                botIcon.style.backgroundImage = `url('${config.botIconImage}')`;
+
+                const botMessage = document.createElement('div');
+                botMessage.className = 'message bot bg-gray-200 text-gray-800 p-3 rounded-lg';
+                botMessage.textContent = message.text;
+
+                messageWrapper.appendChild(botIcon);
+                messageWrapper.appendChild(botMessage);
+            }
+
+            chatContent.appendChild(messageWrapper);
         });
+
+        // Scroll to the bottom of the chat
+        chatContent.scrollTop = chatContent.scrollHeight;
     }
 
     // Send message
     function sendMessage() {
-        const chatId = '1';
-        const role_id = '1';
         const inputField = document.getElementById('chat-input-field');
         const text = inputField.value.trim();
         const backendUrl = 'http://localhost:8000/api/chat/message'; // Your backend API endpoint
-
-        if (text) {
+    
+        if (text && chatId) {
+            // Create a user message element immediately
+            const userMessage = {
+                text: text,
+                role_id: role_id,  // User role ID
+            };
+            messages.push(userMessage);
+            displayMessages(messages);
+            inputField.value = '';  // Clear the input field
+    
+            // Show a typing indicator
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'typing-indicator';
+            typingIndicator.textContent = 'Bot is typing...';
+            document.getElementById('chat-content').appendChild(typingIndicator);
+    
             fetch(backendUrl, {
                 method: 'POST',
                 headers: {
@@ -162,33 +207,53 @@
                 body: JSON.stringify({
                     chatId: chatId,
                     text: text,
-                    role_id: role_id,
+                    role_id: role_id,  // Use dynamic role_id
                 }),
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) throw new Error(data.error);
-                    displayMessages([{ messages: [data.message] }]); // Display the new message
-                    inputField.value = ''; // Clear the input field
-                })
-                .catch(error => console.error('Error sending message:', error));
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) throw new Error(data.error);
+    
+                // Remove the typing indicator once the response is ready
+                typingIndicator.remove();
+    
+                if (data.userMessage && data.aiMessage) {
+                    // Append the AI message to the messages array
+                    messages.push(data.aiMessage);
+                    displayMessages(messages);  // Re-render the messages
+                } else {
+                    console.error('Message data is null or undefined:', data);
+                }
+            })
+            .catch(error => {
+                console.error('Error sending message:', error);
+                typingIndicator.remove();  // Remove typing indicator if there's an error
+            });
+        } else {
+            console.error('Text is empty or chatId is not set.');
         }
+    }
+    
+
+    // Generate or fetch user ID
+    function getOrCreateUserId() {
+        let userId = localStorage.getItem('chat_user_id');
+        if (!userId) {
+            userId = 'user_' + Math.random().toString(36).substr(2, 9); // Generate a random user ID
+            localStorage.setItem('chat_user_id', userId);
+        }
+        return userId;
     }
 
     // Load FontAwesome
     loadFontAwesome();
 
-    // Get script element and chatbot ID
-    const scriptTag = document.currentScript;
-    const chatbotId = scriptTag.getAttribute('data-widget-id');
-    const backendUrl = 'http://localhost:8000/api/configuration'; // Your backend API endpoint
-
     // Fetch configuration for the chatbot
     fetch(`${backendUrl}?chatbotId=${chatbotId}`)
         .then((response) => response.json())
-        .then((config) => {
-            if (config.error) throw new Error(config.error);
-            loadChatbot(config);
+        .then((configuration) => {
+            if (configuration.error) throw new Error(configuration.error);
+            loadChatbot(configuration);
         })
         .catch((error) => console.error('Error loading chatbot:', error));
 })();
