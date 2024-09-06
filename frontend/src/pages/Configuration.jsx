@@ -248,7 +248,7 @@ const Configuration = () => {
                       <input
                         type="range"
                         min="45"
-                        max="75"
+                        max="55"
                         value={chatIconSize}
                         onChange={(e) => setChatIconSize(parseInt(e.target.value))}
                         className="slider w-full"
