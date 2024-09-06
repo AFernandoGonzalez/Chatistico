@@ -8,6 +8,10 @@ const chatRoutes = require('./routes/chatRoutes');
 const chatbotRoutes = require('./routes/chatbotRoutes');
 const configRoutes = require('./routes/configRoutes');
 const knowledgeBaseRoutes = require('./routes/knowledgeBaseRoutes');
+
+const setupApp = () => {
+
+
 const app = express();
 
 app.use(cors());
@@ -22,7 +26,12 @@ app.use('/api/configuration', configRoutes)
 app.use('/api/knowledge-base', knowledgeBaseRoutes);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 8000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// const PORT = process.env.PORT || 8000;
+// app.listen(PORT, () => {
+//   console.log(`Server running on port ${PORT}`);
+// });
+return app;
+}
+
+module.exports = setupApp;
+

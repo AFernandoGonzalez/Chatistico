@@ -237,13 +237,6 @@
                 } else {
                     // No existing chats, initialize a new chat
                     createNewChat();
-                    // Display attention grabber for new users
-                    const attentionMessage = {
-                        text: config.attention_grabber,
-                        role_id: 1  // Assuming role_id 1 is for the bot
-                    };
-                    messages.push(attentionMessage);
-                    displayMessages(messages);
                 }
             })
             .catch(error => console.error('Error fetching chat history:', error));
@@ -279,18 +272,18 @@
     function displayMessages(messages) {
         const chatContent = document.getElementById('chat-content');
         chatContent.innerHTML = ''; // Clear existing content
-
+    
         // Wrapper for the chat messages
         const chatMessageWrapper = document.createElement('div');
         chatMessageWrapper.className = 'chat-message space-y-4';  // Space between messages
-
+    
         messages.forEach(message => {
             const messageWrapper = document.createElement('div');
-
+    
             if (message.role_id === 2) {  // Assuming role_id 2 is for the user/customer
                 // User Message Wrapper
                 messageWrapper.className = 'flex items-center justify-end space-x-3';  // Align message to the right, with space between message and icon
-
+                
                 // User Message (Bubble)
                 const userMessage = document.createElement('div');
                 userMessage.style.cssText = `
@@ -304,23 +297,23 @@
                     color: ${config.text_color};  /* Using dynamic text color */
                 `;
                 userMessage.textContent = message.text;
-
+    
                 // // User Icon Placeholder (Right side)
                 // const userIcon = document.createElement('i');
                 // userIcon.className = 'fas fa-user-circle text-4xl text-gray-500';  // Larger user icon for better visibility
-
+    
                 // Append user icon and message
                 messageWrapper.appendChild(userMessage);  // Message comes first (right-aligned)
                 // messageWrapper.appendChild(userIcon);  // Icon comes after for right-aligned user
-
+                
             } else {
                 // Bot Message Wrapper
                 messageWrapper.className = 'flex items-center space-x-3';  // Align message to the left, with space between icon and message
-
+    
                 // Bot Icon Placeholder (Left side)
                 const botIcon = document.createElement('i');
                 botIcon.className = 'fas fa-robot text-4xl text-gray-500';  // Larger bot icon for better visibility
-
+    
                 // Bot Message (Bubble)
                 const botMessage = document.createElement('div');
                 botMessage.style.cssText = `
@@ -334,46 +327,46 @@
                     color: rgb(0, 0, 0);  /* Black text */
                 `;
                 botMessage.textContent = message.text;
-
+    
                 // Append bot icon and message
                 messageWrapper.appendChild(botIcon);  // Icon comes first (left-aligned)
                 messageWrapper.appendChild(botMessage);  // Message comes after for left-aligned bot
             }
-
+    
             // Append message wrapper to chat message container
             chatMessageWrapper.appendChild(messageWrapper);
         });
-
+    
         // Append chat message wrapper to chat content
         chatContent.appendChild(chatMessageWrapper);
-
+    
         // Scroll to the bottom of the chat
         chatContent.scrollTop = chatContent.scrollHeight;
     }
-
-
-
-
+    
+    
+    
+    
 
     // Send message
     function sendMessage() {
         const inputField = document.getElementById('chat-input-field');
         const text = inputField.value.trim();
         const backendUrl = 'http://localhost:8000/api/chat/message';
-
+    
         console.log("sendMessage text: ", text);
         console.log("sendMessage chatId: ", chatId);
-
+    
         if (!text) {
             console.error('Text is empty.');
             return;
         }
-
+    
         if (!chatId) {
             console.error('chatId is not set.');
             return;
         }
-
+    
         if (text && chatId) {
             // Create a user message element immediately
             const userMessage = {
@@ -383,7 +376,7 @@
             messages.push(userMessage);
             displayMessages(messages);  // Re-render messages to display the new message bubble
             inputField.value = '';  // Clear the input field
-
+    
             // Create typing indicator
             const typingIndicator = document.createElement('div');
             typingIndicator.className = 'typing-indicator';
@@ -393,14 +386,14 @@
                 color: gray;
             `;
             typingIndicator.textContent = 'Bot is typing...';
-
+    
             // Append the typing indicator
             const chatContent = document.getElementById('chat-content');
             chatContent.appendChild(typingIndicator);
-
+    
             // Scroll to bottom to ensure the typing indicator is visible
             chatContent.scrollTop = chatContent.scrollHeight;
-
+    
             fetch(backendUrl, {
                 method: 'POST',
                 headers: {
@@ -413,33 +406,33 @@
                     sessionUserId: sessionUserId
                 }),
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) throw new Error(data.error);
-
-                    // Remove the typing indicator once the response is ready
-                    typingIndicator.remove();
-
-                    if (data.userMessage && data.aiMessage) {
-                        // Append the AI message to the messages array
-                        messages.push(data.aiMessage);
-
-                        // Re-render the messages with updated styles for the bubbles
-                        displayMessages(messages);
-                    } else {
-                        console.error('Message data is null or undefined:', data);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error sending message:', error);
-                    typingIndicator.remove();  // Remove typing indicator if there's an error
-                });
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) throw new Error(data.error);
+    
+                // Remove the typing indicator once the response is ready
+                typingIndicator.remove();
+    
+                if (data.userMessage && data.aiMessage) {
+                    // Append the AI message to the messages array
+                    messages.push(data.aiMessage);
+    
+                    // Re-render the messages with updated styles for the bubbles
+                    displayMessages(messages);
+                } else {
+                    console.error('Message data is null or undefined:', data);
+                }
+            })
+            .catch(error => {
+                console.error('Error sending message:', error);
+                typingIndicator.remove();  // Remove typing indicator if there's an error
+            });
         } else {
             console.error('Text is empty or chatId is not set.');
         }
     }
-
-
+    
+    
 
     // Generate or fetch user ID
     function getOrCreateUserId() {
