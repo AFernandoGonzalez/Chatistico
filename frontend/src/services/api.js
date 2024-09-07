@@ -96,11 +96,9 @@ export const createChatbot = async (userId, name, description) => {
 
   return handleErrors(response);
 };
-
-
 // Fetches a list of all chatbots
-export const getChatbots = async () => {
-  const response = await fetch(`${API_BASE_URL}/chatbots`);
+export const getChatbots = async (userId) => {
+  const response = await fetch(`${API_BASE_URL}/chatbots?userId=${userId}`);
   return handleErrors(response);
 };
 
@@ -252,6 +250,18 @@ export const saveConfiguration = async (chatbotId, config) => {
   }
   return await response.json();
 };
+
+export const createUserInDB = async (firebaseUid, email) => {
+  const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ firebaseUid, email }),
+  });
+  return response.json();
+};
+
 
 
 

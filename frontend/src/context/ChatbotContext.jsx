@@ -1,39 +1,33 @@
-import React, { createContext, useState, useEffect } from 'react';
-import { getChatbots, getChatHistory, sendMessage, uploadQAPair, getQAPairs, updateQAPair, deleteQAPair } from '../services/api';
+import React, { createContext, useState, useEffect, useContext } from 'react';
+import { getChatbots } from '../services/api';
+import { AuthContext } from './AuthContext';  // Get the current user from AuthContext
 
 export const ChatbotContext = createContext();
 
 export const ChatbotProvider = ({ children }) => {
+  const { user } = useContext(AuthContext);  // Get the user from AuthContext
   const [chatbots, setChatbots] = useState([]);
-  const [chatHistory, setChatHistory] = useState({});
-  const [qaPairs, setQAPairs] = useState([]);
-
+  const [loading, setLoading] = useState(true);
+  
   useEffect(() => {
-    const fetchChatbots = async () => {
-      try {
-        const data = await getChatbots();
-        setChatbots(data);
-      } catch (error) {
-        console.error('Error fetching chatbots:', error);
-      }
-    };
+    if (user) {
+      const fetchChatbots = async () => {
+        try {
+          const data = await getChatbots(user.uid);  // Pass the user's uid to the API
+          setChatbots(data);
+        } catch (error) {
+          console.error('Error fetching chatbots:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    fetchChatbots();
-  }, []);
+      fetchChatbots();
+    }
+  }, [user]);
 
   return (
-    <ChatbotContext.Provider value={{ 
-      chatbots, 
-      setChatbots, 
-      chatHistory, 
-      qaPairs, 
-      // fetchChatHistory, 
-      // handleSendMessage, 
-      // fetchQAPairs, 
-      // handleUploadQAPair, 
-      // handleUpdateQAPair, 
-      // handleDeleteQAPair 
-    }}>
+    <ChatbotContext.Provider value={{ chatbots, setChatbots, loading }}>
       {children}
     </ChatbotContext.Provider>
   );

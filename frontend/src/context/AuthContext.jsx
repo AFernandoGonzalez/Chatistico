@@ -1,7 +1,13 @@
 // src/context/AuthContext.js
-
 import React, { createContext, useState, useEffect } from 'react';
-import { loginUser, signupUser, logoutUser } from '../services/api';
+import { auth } from '../config/firebaseConfig'; // Import Firebase Auth
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut, 
+  onAuthStateChanged 
+} from 'firebase/auth';
+import { createUserInDB } from '../services/api'; // Import the API to register users in the backend
 
 // Create the context
 export const AuthContext = createContext();
@@ -12,16 +18,21 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null); // State to manage authentication errors
 
-  // Check if the user is already logged in (e.g., via a token in localStorage)
+  // Check if the user is already logged in via Firebase
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    } else {
-      // Mock user data for testing without real authentication
-      setUser({ id: 1, email: 'test@example.com' });
-    }
-    setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(firebaseUser);
+        localStorage.setItem('user', JSON.stringify(firebaseUser)); // Store the user in localStorage
+      } else {
+        setUser(null);
+        localStorage.removeItem('user'); // Clear user data when logged out
+      }
+      setLoading(false);
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, []);
 
   // Login function
@@ -29,9 +40,9 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setAuthError(null); // Reset any existing errors
     try {
-      const user = await loginUser(email, password);
-      setUser(user);
-      localStorage.setItem('user', JSON.stringify(user));
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      setUser(userCredential.user);
+      localStorage.setItem('user', JSON.stringify(userCredential.user));
     } catch (error) {
       console.error('Login error:', error);
       setAuthError('Failed to log in. Please check your credentials and try again.');
@@ -45,9 +56,17 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setAuthError(null); // Reset any existing errors
     try {
-      const user = await signupUser(email, password);
-      setUser(user);
-      localStorage.setItem('user', JSON.stringify(user));
+      // Register the user in Firebase
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
+      console.log("userCredential.user: ",userCredential.user)
+
+      // Now register the user in your backend database with the firebase_uid
+      await createUserInDB(firebaseUser.uid, firebaseUser.email);
+
+      // Set the user state in the context
+      setUser(firebaseUser);
+      localStorage.setItem('user', JSON.stringify(firebaseUser));
     } catch (error) {
       console.error('Signup error:', error);
       setAuthError('Failed to sign up. Please try again later.');
@@ -61,7 +80,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setAuthError(null); // Reset any existing errors
     try {
-      await logoutUser();
+      await signOut(auth);
       setUser(null);
       localStorage.removeItem('user');
     } catch (error) {

@@ -1,3 +1,5 @@
+// src/App.js
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Signup from './pages/Signup';
@@ -11,24 +13,28 @@ import Profile from './pages/Profile';
 import { Overview } from './pages/Overview'; 
 import ChatHistory from './components/ChatHistory';
 import Integrations from './pages/Integrations';
-// import ChatWidget from './components/ChatWidget';
-// import ChatWidgetPreview from './components/ChatWidgetPreview';
+import PrivateRoute from './components/PrivateRoute';  // Import PrivateRoute
 
 const App = () => {
   return (
     <Router>
       <div className="min-h-screen bg-gray-100">
         <Routes>
+          {/* Public Routes */}
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
-          {/* <Route path="/widget/:id" element={<ChatWidgetPreview />} /> */}
 
-          {/* Dashboard and its children routes */}
-          <Route path="/dashboard" element={<DashboardLayout />}>
+          {/* Protected Routes */}
+          <Route 
+            path="/dashboard" 
+            element={
+              <PrivateRoute>
+                <DashboardLayout />
+              </PrivateRoute>
+            }
+          >
             <Route index element={<DashboardPage />} />
             <Route path="profile" element={<Profile />} />
-
-            {/* Chatbot specific routes with nested routes */}
             <Route path="chatbot/:id" element={<ChatbotDetail />}>
               <Route path="overview" element={<Overview />} />
               <Route path="knowledge-base" element={<KnowledgeBase />} />

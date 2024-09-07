@@ -7,9 +7,7 @@ import { AuthContext } from '../context/AuthContext';
 const Dashboard = () => {
   const { chatbots, setChatbots } = useContext(ChatbotContext);
   const { user } = useContext(AuthContext);
-
-  console.log("user: ", user);
-  
+  console.log("user: ", user);  
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -21,27 +19,12 @@ const Dashboard = () => {
 
   // Handle chatbot creation
   const handleCreateChatbot = async () => {
-    if (!newChatbotName || !newChatbotDescription) {
-      setError('handleCreateChatbot: Name and description are required.');
-      return;
-    }
-
-    if (!user) {
-      setError('User must be logged in to create a chatbot.');
-      return;
-    }
-
+    if (!user) return;  // Ensure the user is authenticated
     try {
-      // Pass userId to the createChatbot API function
-      const newChatbot = await createChatbot(user.id, newChatbotName, newChatbotDescription);
+      const newChatbot = await createChatbot(user.uid, newChatbotName, newChatbotDescription);  // Pass user.uid
       setChatbots([...chatbots, newChatbot]);
-      setIsModalOpen(false);
-      setNewChatbotName('');
-      setNewChatbotDescription('');
-      setError('');
     } catch (error) {
       console.error('Error creating chatbot:', error);
-      setError('Failed to create chatbot. Please try again.');
     }
   };
 

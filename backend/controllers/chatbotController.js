@@ -2,10 +2,20 @@ const supabase = require('../config/db');
 
 // Get all chatbots
 const getChatbots = async (req, res) => {
+  const { userId } = req.query;
+
+  console.log("userId: ", userId);
+  
+
+  if (!userId) {
+    return res.status(400).json({ message: 'User ID is required.' });
+  }
+
   try {
     const { data: chatbots, error } = await supabase
       .from('chatbots')
-      .select('*');
+      .select('*')
+      .eq('user_id', userId);
 
     if (error) {
       throw error;
@@ -23,8 +33,8 @@ const getChatbots = async (req, res) => {
 const createChatbot = async (req, res) => {
   const { userId, name, description } = req.body;
 
-  if (!name || !description) {
-    return res.status(400).json({ message: 'Name and description are required.' });
+  if (!userId || !name || !description) {
+    return res.status(400).json({ message: 'User ID, Name, and Description are required.' });
   }
 
   try {

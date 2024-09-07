@@ -8,6 +8,8 @@ const chatRoutes = require('./routes/chatRoutes');
 const chatbotRoutes = require('./routes/chatbotRoutes');
 const configRoutes = require('./routes/configRoutes');
 const knowledgeBaseRoutes = require('./routes/knowledgeBaseRoutes');
+const dotenv = require('dotenv');
+dotenv.config();
 
 const setupApp = () => {
 
