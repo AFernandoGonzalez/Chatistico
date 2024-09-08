@@ -1,24 +1,37 @@
 const supabase = require('../config/db');
 
-// Get all chatbots
 const getChatbots = async (req, res) => {
-  const { userId } = req.query;
+  const { uid } = req.user; // Assuming you are using the authenticate middleware to populate req.user with firebase_uid
 
-  console.log("userId: ", userId);
-  
-
-  if (!userId) {
+  if (!uid) {
     return res.status(400).json({ message: 'User ID is required.' });
   }
 
   try {
-    const { data: chatbots, error } = await supabase
+    // First, get the user_id from the users table based on the firebase_uid
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('firebase_uid', uid)
+      .single(); // Get the user_id based on the firebase_uid
+
+    if (userError || !user) {
+      throw new Error('User not found.');
+    }
+
+    // Now, get the chatbots for this user_id
+    const { data: chatbots, error: chatbotError } = await supabase
       .from('chatbots')
       .select('*')
-      .eq('user_id', userId);
+      .eq('user_id', user.id); // Use the user_id to fetch the chatbots
 
-    if (error) {
-      throw error;
+    if (chatbotError) {
+      throw chatbotError;
+    }
+
+    // Return an empty array if no chatbots are found
+    if (!chatbots || chatbots.length === 0) {
+      return res.status(200).json([]);
     }
 
     res.status(200).json(chatbots);
@@ -28,64 +41,60 @@ const getChatbots = async (req, res) => {
   }
 };
 
-// Create a new chatbot
-// Create a new chatbot and default configuration
 const createChatbot = async (req, res) => {
-  const { userId, name, description } = req.body;
+  const { uid } = req.user; // Get firebase_uid from the authenticated user
+  const { name, description } = req.body;
 
-  if (!userId || !name || !description) {
+  if (!uid || !name || !description) {
     return res.status(400).json({ message: 'User ID, Name, and Description are required.' });
   }
 
   try {
-    // Begin a transaction
-    const { data: newChatbot, error: chatbotError } = await supabase
-      .from('chatbots')
-      .insert([{ user_id: userId, name, description }])
-      .select('*')
-      .single(); // Use single() to get a single object instead of an array
+    // Fetch the user_id from firebase_uid
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('firebase_uid', uid)
+      .single();
 
-    if (chatbotError) {
-      throw chatbotError;
+    if (userError || !user) {
+      return res.status(404).json({ message: 'User not found.' });
     }
 
-    // Insert default configuration
-    const defaultConfig = {
-      chatbot_id: newChatbot.id,
-      primary_color: '#000000',
-      text_color: '#ffffff',
-      icon_color: '#000000',
-      chat_width: 350,
-      widget_position: 'br',
-      horizontal_spacing: 0,
-      vertical_spacing: 0,
-      bot_icon_circular: false,
-      chat_icon_circular: false,
-      chat_icon_size: 55,
-      bot_icon_image: null,
-      chat_icon_image: null,
-      chatbot_name: name || 'Support Bot',
-    };
+    // Create the chatbot
+    const { data: newChatbot, error: chatbotError } = await supabase
+      .from('chatbots')
+      .insert([{ user_id: user.id, name, description }])
+      .select('*')
+      .single();
 
+    if (chatbotError) {
+      return res.status(500).json({ message: 'Error creating chatbot' });
+    }
+
+    // Insert default configuration for the chatbot
     const { error: configError } = await supabase
       .from('chatbot_configurations')
-      .insert([defaultConfig]);
+      .insert([{ chatbot_id: newChatbot.id }]);
 
     if (configError) {
-      throw configError;
+      return res.status(500).json({ message: 'Error creating chatbot configuration' });
     }
 
     res.status(201).json(newChatbot);
   } catch (error) {
-    console.error('Error creating chatbot:', error);
     res.status(500).json({ message: 'Failed to create chatbot' });
   }
 };
 
+module.exports = {
+  createChatbot
+};
 
-// Get a chatbot by ID
+
 const getChatbotById = async (req, res) => {
   const { id } = req.params;
+
   try {
     const { data: chatbot, error } = await supabase
       .from('chatbots')
@@ -108,9 +117,10 @@ const getChatbotById = async (req, res) => {
   }
 };
 
-// Delete a chatbot
+
 const deleteChatbot = async (req, res) => {
   const { id } = req.params;
+
   try {
     const { error } = await supabase
       .from('chatbots')
@@ -128,7 +138,6 @@ const deleteChatbot = async (req, res) => {
   }
 };
 
-// Rename a chatbot
 const renameChatbot = async (req, res) => {
   const { id } = req.params;
   const { name, description } = req.body;
@@ -149,6 +158,7 @@ const renameChatbot = async (req, res) => {
     res.status(500).json({ message: 'Failed to rename chatbot' });
   }
 };
+
 
 
 

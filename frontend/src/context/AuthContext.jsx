@@ -34,8 +34,7 @@ export const AuthProvider = ({ children }) => {
     // Cleanup subscription on unmount
     return () => unsubscribe();
   }, []);
-
-  // Login function
+  
   const login = async (email, password) => {
     setLoading(true);
     setAuthError(null); // Reset any existing errors

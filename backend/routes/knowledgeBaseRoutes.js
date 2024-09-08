@@ -5,15 +5,16 @@ const {
   updateQAPair,
   deleteQAPair,
 } = require('../controllers/knowledgeBaseController');
+const authenticate = require('../middlewares/authMiddleware')
 
 const router = express.Router();
 
-router.post('/upload', uploadQAPair);
+router.post('/upload', authenticate, uploadQAPair);
 
-router.get('/', getQAPairs);
+router.get('/', authenticate, getQAPairs);
 
-router.put('/:id', updateQAPair);
+router.put('/:id', authenticate, updateQAPair);
 
-router.delete('/:id', deleteQAPair);
+router.delete('/:id', authenticate, deleteQAPair);
 
 module.exports = router;

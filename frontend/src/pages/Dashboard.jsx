@@ -17,18 +17,22 @@ const Dashboard = () => {
   const [renameChatbotId, setRenameChatbotId] = useState(null);
   const [error, setError] = useState('');
 
-  // Handle chatbot creation
   const handleCreateChatbot = async () => {
     if (!user) return;  // Ensure the user is authenticated
     try {
+      setLoading(true);  // Set loading to true while the request is being processed
       const newChatbot = await createChatbot(user.uid, newChatbotName, newChatbotDescription);  // Pass user.uid
-      setChatbots([...chatbots, newChatbot]);
+      setChatbots([...chatbots, newChatbot]);  // Add the new chatbot to the list
+      setIsModalOpen(false);  // Close the modal after chatbot creation
+      setNewChatbotName('');  // Clear the chatbot name input field
+      setNewChatbotDescription('');  // Clear the chatbot description input field
     } catch (error) {
       console.error('Error creating chatbot:', error);
+    } finally {
+      setLoading(false);  // Set loading to false after the request completes
     }
   };
-
-
+  
   // Handle chatbot deletion
   const handleDeleteChatbot = async (id) => {
     if (window.confirm('Are you sure you want to delete this chatbot?')) {

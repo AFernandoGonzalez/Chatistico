@@ -10,7 +10,7 @@
     // Get script element and chatbot ID
     const scriptTag = document.currentScript;
     const chatbotId = scriptTag.getAttribute('data-widget-id');
-    const backendUrl = 'http://localhost:8000/api/configuration'; // Your backend API endpoint
+    const backendUrl = 'http://localhost:8000/api/public/embed/chatbot/configure'; // Consolidated backend API endpoint
 
     function toggleChat() {
         isChatOpen = !isChatOpen;
@@ -39,7 +39,7 @@
             chatbotContainer.style.display = 'block';
             toggleButtonIcon.className = 'fas fa-times';
             if (messages.length === 0) {  // Avoid redundant fetches
-                fetchChatHistory();
+                performGetChatAction('getChatHistory');
             }
         } else {
             chatbotContainer.style.display = 'none';
@@ -53,6 +53,7 @@
         link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css';
         document.head.appendChild(link);
     }
+
     function loadTailwind() {
         const link = document.createElement('link');
         link.rel = 'stylesheet';
@@ -76,9 +77,10 @@
         chatbotContainer.style.maxHeight = '600px';
         chatbotContainer.style.backgroundColor = '#ffffff'; // Default background
         chatbotContainer.style.display = 'none'; // Start hidden
+        chatbotContainer.style.zIndex = '10'; // Start hidden
         document.body.appendChild(chatbotContainer);
 
-        // Function to adjust chatbot size based on window width
+        // Adjust size for responsiveness
         function adjustChatbotSize() {
             if (window.innerWidth <= 640) {
                 chatbotContainer.style.maxWidth = '100%';
@@ -126,7 +128,7 @@
 
         adjustHeader();
 
-        window.addEventListener('resize', adjustHeader)
+        window.addEventListener('resize', adjustHeader);
 
         const chatTitle = document.createElement('h3');
         chatTitle.className = 'font-bold text-xl';
@@ -222,238 +224,176 @@
         }
     }
 
-    // Fetch chat history
-    function fetchChatHistory() {
-        const backendUrl = 'http://localhost:8000/api/chat/history';
+    // Fetch chat data using GET
+    function performGetChatAction(action) {
+        const url = `${backendUrl}?action=${action}&chatbotId=${chatbotId}&sessionUserId=${sessionUserId}`;
 
-        fetch(`${backendUrl}?chatbotId=${chatbotId}&sessionUserId=${sessionUserId}`)
+        fetch(url, {
+            method: 'GET',
+        })
             .then(response => response.json())
             .then(data => {
-                if (data.error) throw new Error(data.error);
-                if (data.chats && data.chats.length > 0) {
-                    messages = data.chats[0].messages || []; // Store messages locally
-                    chatId = data.chats[0].id; // Set chatId dynamically
-                    displayMessages(messages);
+                if (data.error) {
+                    console.error('Error:', data.error);
                 } else {
-                    // No existing chats, initialize a new chat
-                    createNewChat();
+                    if (action === 'getChatHistory') {
+                        if (data.chats.length > 0) {
+                            messages = data.chats[0].messages || [];
+                            chatId = data.chats[0].id;
+                            displayMessages(messages);
+                        } else {
+                            // If no existing chat, create a new one
+                            performPostChatAction('createNewChat');
+                        }
+                    } else if (action === 'getConfiguration') {
+                        loadChatbot(data);
+                    }
                 }
             })
-            .catch(error => console.error('Error fetching chat history:', error));
+            .catch(error => console.error('Error:', error));
     }
 
-    // Function to create a new chat if none exists
-    function createNewChat() {
-        const backendUrl = 'http://localhost:8000/api/chat/new';
+    // Perform POST actions for chat
+    function performPostChatAction(action, text = null) {
+        const payload = {
+            action: action,
+            chatbotId: chatbotId,
+            sessionUserId: sessionUserId,
+            text: text,
+            role_id: role_id,
+            chatId: chatId
+        };
 
-        console.log("Creating new chat with chatbotId:", chatbotId, "and sessionUserId:", sessionUserId);
-
-        fetch(backendUrl, {
+        return fetch(backendUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                chatbotId: chatbotId,
-                sessionUserId: sessionUserId
-            }),
+            body: JSON.stringify(payload),
         })
             .then(response => response.json())
             .then(data => {
-                if (data.error) throw new Error(data.error);
-                chatId = data.chatId; // Get new chat ID
-                messages = []; // Initialize empty message array
-                displayMessages(messages); // Display empty messages or a welcome message
+                if (data.error) {
+                    console.error('Error:', data.error);
+                    throw new Error(data.error);
+                }
+                if (action === 'createNewChat') {
+                    chatId = data.chatId;  // Update chatId after creating a new chat
+                    messages = [];
+                    displayMessages(messages);
+                }
+                return data;
             })
-            .catch(error => console.error('Error creating new chat:', error));
+            .catch(error => {
+                console.error('Error:', error);
+                throw error;
+            });
     }
-
     // Display fetched chat messages
     function displayMessages(messages) {
         const chatContent = document.getElementById('chat-content');
         chatContent.innerHTML = ''; // Clear existing content
-    
+
         // Wrapper for the chat messages
         const chatMessageWrapper = document.createElement('div');
         chatMessageWrapper.className = 'chat-message space-y-4';  // Space between messages
-    
+
         messages.forEach(message => {
             const messageWrapper = document.createElement('div');
-    
+
             if (message.role_id === 2) {  // Assuming role_id 2 is for the user/customer
-                // User Message Wrapper
-                messageWrapper.className = 'flex items-center justify-end space-x-3';  // Align message to the right, with space between message and icon
-                
-                // User Message (Bubble)
+                messageWrapper.className = 'flex items-center justify-end space-x-3';  // Align message to the right
                 const userMessage = document.createElement('div');
                 userMessage.style.cssText = `
-                    box-sizing: border-box;
-                    overflow-wrap: anywhere;
                     padding: 10px 15px;
-                    border-radius: 10px 10px 2px 10px;  /* Adjusted radius for user bubble */
-                    font-size: 13.5px;
-                    transition: width 200ms linear;
-                    background-color: ${config.primary_color};  /* Using dynamic primary color */
-                    color: ${config.text_color};  /* Using dynamic text color */
+                    border-radius: 10px 10px 2px 10px;
+                    background-color: ${config.primary_color};
+                    color: ${config.text_color};
                 `;
                 userMessage.textContent = message.text;
-    
-                // // User Icon Placeholder (Right side)
-                // const userIcon = document.createElement('i');
-                // userIcon.className = 'fas fa-user-circle text-4xl text-gray-500';  // Larger user icon for better visibility
-    
-                // Append user icon and message
-                messageWrapper.appendChild(userMessage);  // Message comes first (right-aligned)
-                // messageWrapper.appendChild(userIcon);  // Icon comes after for right-aligned user
-                
+                messageWrapper.appendChild(userMessage);
             } else {
-                // Bot Message Wrapper
-                messageWrapper.className = 'flex items-center space-x-3';  // Align message to the left, with space between icon and message
-    
-                // Bot Icon Placeholder (Left side)
-                const botIcon = document.createElement('i');
-                botIcon.className = 'fas fa-robot text-4xl text-gray-500';  // Larger bot icon for better visibility
-    
-                // Bot Message (Bubble)
+                messageWrapper.className = 'flex items-center space-x-3';
                 const botMessage = document.createElement('div');
                 botMessage.style.cssText = `
-                    box-sizing: border-box;
-                    overflow-wrap: anywhere;
                     padding: 10px 15px;
-                    border-radius: 10px 10px 10px 2px;  /* Adjusted radius for bot bubble */
-                    font-size: 13.5px;
-                    transition: width 200ms linear;
-                    background-color: rgb(241, 245, 249);  /* Light gray background */
-                    color: rgb(0, 0, 0);  /* Black text */
+                    border-radius: 10px 10px 10px 2px;
+                    background-color: rgb(241, 245, 249);
+                    color: rgb(0, 0, 0);
                 `;
                 botMessage.textContent = message.text;
-    
-                // Append bot icon and message
-                messageWrapper.appendChild(botIcon);  // Icon comes first (left-aligned)
-                messageWrapper.appendChild(botMessage);  // Message comes after for left-aligned bot
+                messageWrapper.appendChild(botMessage);
             }
-    
-            // Append message wrapper to chat message container
+
             chatMessageWrapper.appendChild(messageWrapper);
         });
-    
-        // Append chat message wrapper to chat content
+
         chatContent.appendChild(chatMessageWrapper);
-    
-        // Scroll to the bottom of the chat
         chatContent.scrollTop = chatContent.scrollHeight;
     }
-    
-    
-    
-    
 
     // Send message
     function sendMessage() {
         const inputField = document.getElementById('chat-input-field');
         const text = inputField.value.trim();
-        const backendUrl = 'http://localhost:8000/api/chat/message';
-    
-        console.log("sendMessage text: ", text);
-        console.log("sendMessage chatId: ", chatId);
-    
+
         if (!text) {
-            console.error('Text is empty.');
-            return;
+            return console.error('Text is empty.');
         }
-    
+
         if (!chatId) {
-            console.error('chatId is not set.');
+            console.log('No chatId, creating a new chat...');
+            performPostChatAction('createNewChat');  // Create a new chat if chatId is null
             return;
         }
-    
-        if (text && chatId) {
-            // Create a user message element immediately
-            const userMessage = {
-                text: text,
-                role_id: role_id,  // User role ID
-            };
-            messages.push(userMessage);
-            displayMessages(messages);  // Re-render messages to display the new message bubble
-            inputField.value = '';  // Clear the input field
-    
-            // Create typing indicator
-            const typingIndicator = document.createElement('div');
-            typingIndicator.className = 'typing-indicator';
-            typingIndicator.style.cssText = `
-                padding: 10px;
-                font-style: italic;
-                color: gray;
-            `;
-            typingIndicator.textContent = 'Bot is typing...';
-    
-            // Append the typing indicator
-            const chatContent = document.getElementById('chat-content');
-            chatContent.appendChild(typingIndicator);
-    
-            // Scroll to bottom to ensure the typing indicator is visible
-            chatContent.scrollTop = chatContent.scrollHeight;
-    
-            fetch(backendUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    chatId: chatId,
-                    text: text,
-                    role_id: role_id,  // Use dynamic role_id
-                    sessionUserId: sessionUserId
-                }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) throw new Error(data.error);
-    
-                // Remove the typing indicator once the response is ready
+
+        // Optimistically render the user's message only on the client-side
+        const userMessage = { text, role_id: role_id };
+        messages.push(userMessage);
+        displayMessages(messages);  // Render all messages with the new user message
+        inputField.value = '';
+
+        // Display typing indicator for the bot response
+        const typingIndicator = document.createElement('div');
+        typingIndicator.className = 'typing-indicator';
+        typingIndicator.style.cssText = 'padding: 10px; font-style: italic; color: gray;';
+        typingIndicator.textContent = 'Bot is typing...';
+        const chatContent = document.getElementById('chat-content');
+        chatContent.appendChild(typingIndicator);
+        chatContent.scrollTop = chatContent.scrollHeight;
+
+        // Perform the POST request to send the message
+        performPostChatAction('sendMessage', text)
+            .then((data) => {
+                // Remove typing indicator once the AI response is received
                 typingIndicator.remove();
-    
-                if (data.userMessage && data.aiMessage) {
-                    // Append the AI message to the messages array
-                    messages.push(data.aiMessage);
-    
-                    // Re-render the messages with updated styles for the bubbles
-                    displayMessages(messages);
-                } else {
-                    console.error('Message data is null or undefined:', data);
+
+                // Only render the AI response here to avoid duplicating the user's message
+                if (data.aiMessage) {
+                    messages.push(data.aiMessage);  // Only push the bot's response
+                    displayMessages(messages);      // Re-render messages with AI response
                 }
             })
-            .catch(error => {
+            .catch((error) => {
                 console.error('Error sending message:', error);
-                typingIndicator.remove();  // Remove typing indicator if there's an error
+                typingIndicator.remove();  // Remove typing indicator on error
             });
-        } else {
-            console.error('Text is empty or chatId is not set.');
-        }
     }
-    
-    
 
     // Generate or fetch user ID
     function getOrCreateUserId() {
         let userId = localStorage.getItem('chat_user_id');
         if (!userId) {
-            userId = 'user_' + Math.random().toString(36).substr(2, 9); // Generate a random user ID
+            userId = 'user_' + Math.random().toString(36).substr(2, 9);
             localStorage.setItem('chat_user_id', userId);
         }
         return userId;
     }
 
-    // Load FontAwesome
+    // Load resources
     loadFontAwesome();
     loadTailwind();
 
-    // Fetch configuration for the chatbot
-    fetch(`${backendUrl}?chatbotId=${chatbotId}`)
-        .then((response) => response.json())
-        .then((configuration) => {
-            if (configuration.error) throw new Error(configuration.error);
-            loadChatbot(configuration);
-        })
-        .catch((error) => console.error('Error loading chatbot:', error));
+    // Fetch chatbot configuration and load the widget
+    performGetChatAction('getConfiguration');
 })();

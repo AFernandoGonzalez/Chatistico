@@ -3,9 +3,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faFilter, faChartPie, faSyncAlt, faEye, faTrashAlt, faEdit, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { AuthContext } from '../context/AuthContext';
 import { getQAPairs, uploadQAPair, updateQAPair, deleteQAPair } from '../services/api';
+import { useParams } from 'react-router-dom';
 
 const KnowledgeBase = () => {
   const { user } = useContext(AuthContext);
+  const { id: chatbotId } = useParams(); 
   const [activeTab, setActiveTab] = useState('text');
   const [dataSources, setDataSources] = useState({
     link: { items: [] },
@@ -19,15 +21,18 @@ const KnowledgeBase = () => {
   const [editingEntry, setEditingEntry] = useState(null);
   const modalRef = useRef(null);
 
-  useEffect(() => {
-    if (user) {
-      fetchQAPairs();
-    }
-  }, [user]);
+  console.log("chatbotId..", chatbotId);
+  
 
-  const fetchQAPairs = async () => {
+  useEffect(() => {
+    if (user && chatbotId) {
+      fetchQAPairs(chatbotId); // Fetch data with the correct chatbotId
+    }
+  }, [user, chatbotId]);
+
+  const fetchQAPairs = async (chatbotId) => {
     try {
-      const data = await getQAPairs(user.id);
+      const data = await getQAPairs(chatbotId); // Now passing chatbotId instead of user.id
       setDataSources(data);
     } catch (error) {
       console.error('Error fetching Q&A pairs:', error);
@@ -42,8 +47,8 @@ const KnowledgeBase = () => {
 
   const handleAddEntry = async (newEntry) => {
     try {
-      await uploadQAPair(user.id, selectedType, newEntry);
-      fetchQAPairs();
+      await uploadQAPair(chatbotId, selectedType, newEntry); // Use chatbotId here
+      fetchQAPairs(chatbotId);
       setShowAddModal(false);
     } catch (error) {
       console.error('Error uploading Q&A pair:', error);
@@ -53,7 +58,7 @@ const KnowledgeBase = () => {
   const handleUpdateEntry = async (id, updatedEntry) => {
     try {
       await updateQAPair(id, editingEntry.type, updatedEntry);
-      fetchQAPairs(); 
+      fetchQAPairs(chatbotId); 
       setShowEditModal(false);
       setEditingEntry(null);
     } catch (error) {
@@ -64,7 +69,7 @@ const KnowledgeBase = () => {
   const handleDeleteEntry = async (id) => {
     try {
       await deleteQAPair(id);
-      fetchQAPairs(); 
+      fetchQAPairs(chatbotId); 
     } catch (error) {
       console.error('Error deleting Q&A pair:', error);
     }

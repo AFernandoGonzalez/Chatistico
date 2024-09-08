@@ -1,6 +1,13 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { auth } from "../config/firebaseConfig";
 
-// Helper function to handle errors
+const getAuthToken = async () => {
+  if (auth.currentUser) {
+    return await auth.currentUser.getIdToken();
+  }
+  throw new Error("No user logged in");
+};
+
 const handleErrors = (response) => {
   if (!response.ok) {
     throw new Error("An error occurred while fetching data");
@@ -9,12 +16,13 @@ const handleErrors = (response) => {
 };
 
 // Chat APIs
-// Sends a message and retrieves a response from the chatbot
 export const sendMessage = async (chatId, text, role_id) => {
+  const token = await getAuthToken();
   const response = await fetch(`${API_BASE_URL}/chat/message`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ chatId, text, role_id }),
   });
@@ -22,108 +30,121 @@ export const sendMessage = async (chatId, text, role_id) => {
 };
 
 export const getChatHistory = async (userId, chatbotId) => {
+  const token = await getAuthToken();
   const response = await fetch(`${API_BASE_URL}/chat/history?userId=${userId}&chatbotId=${chatbotId}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
     },
   });
   return handleErrors(response);
 };
 
-
-
-
-
-
 // Knowledge Base APIs
-// Fetches Q&A pairs for a specific chatbot
 export const getQAPairs = async (chatbotId) => {
-  const response = await fetch(`${API_BASE_URL}/knowledge-base?chatbotId=${chatbotId}`);
-  const data = await handleErrors(response);
-  return data; // Ensure this is an array
-};
-export const uploadQAPair = async (chatbotId, type, data) => {
-  const body = { chatbotId, type, ...data };
-
-  console.log("uploadQAPair data: ", data);
+  console.log("getQAPairs chatbotid", chatbotId);
   
+  const token = await getAuthToken();
+  const response = await fetch(`${API_BASE_URL}/knowledge-base?chatbotId=${chatbotId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return handleErrors(response);
+};
+
+export const uploadQAPair = async (chatbotId, type, data) => {
+  const token = await getAuthToken();
   const response = await fetch(`${API_BASE_URL}/knowledge-base/upload`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify({ chatbotId, type, ...data }),
   });
-
   return handleErrors(response);
 };
-// Updates a specific Q&A pair
-export const updateQAPair = async (id, type, data) => {
-  const body = { type, ...data }; // Include type to distinguish what is being updated
 
+export const updateQAPair = async (id, type, data) => {
+  const token = await getAuthToken();
   const response = await fetch(`${API_BASE_URL}/knowledge-base/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify({ type, ...data }),
   });
-  
   return handleErrors(response);
 };
-// Deletes a specific Q&A pair
+
 export const deleteQAPair = async (id) => {
+  const token = await getAuthToken();
   const response = await fetch(`${API_BASE_URL}/knowledge-base/${id}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
   });
   return handleErrors(response);
 };
 
-// Creates a new chatbot
-// Update the API function to create a chatbot with userId
+// Chatbots APIs
 export const createChatbot = async (userId, name, description) => {
+  const token = await getAuthToken();
   const response = await fetch(`${API_BASE_URL}/chatbots`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ userId, name, description }), // Include userId in the request body
+    body: JSON.stringify({ userId, name, description }),
   });
-
-  return handleErrors(response);
-};
-// Fetches a list of all chatbots
-export const getChatbots = async (userId) => {
-  const response = await fetch(`${API_BASE_URL}/chatbots?userId=${userId}`);
   return handleErrors(response);
 };
 
-// Fetches details of a specific chatbot
+export const getChatbots = async () => {
+  const token = await getAuthToken();
+  const response = await fetch(`${API_BASE_URL}/chatbots`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return handleErrors(response);
+};
+
 export const getChatbotById = async (id) => {
-  const response = await fetch(`${API_BASE_URL}/chatbots/${id}`);
+  const token = await getAuthToken();
+  const response = await fetch(`${API_BASE_URL}/chatbots/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return handleErrors(response);
 };
 
 export const deleteChatbot = async (id) => {
+  const token = await getAuthToken();
   const response = await fetch(`${API_BASE_URL}/chatbots/${id}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
   });
   return handleErrors(response);
 };
 
-// Renames a chatbot
 export const renameChatbot = async (id, name, description) => {
+  const token = await getAuthToken();
   const response = await fetch(`${API_BASE_URL}/chatbots/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ name, description }),
   });
@@ -131,33 +152,36 @@ export const renameChatbot = async (id, name, description) => {
 };
 
 // User Profile APIs
-
-// Fetches the profile of the current user
 export const getUserProfile = async () => {
-  const response = await fetch(`${API_BASE_URL}/user/profile`);
+  const token = await getAuthToken();
+  const response = await fetch(`${API_BASE_URL}/user/profile`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return handleErrors(response);
 };
 
-// Updates the profile of the current user
 export const updateUserProfile = async (username, email, notifications) => {
+  const token = await getAuthToken();
   const response = await fetch(`${API_BASE_URL}/user/profile`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ username, email, notifications }),
   });
   return handleErrors(response);
 };
 
-// **This is the missing function you need to add**
-
-// Updates the user profile based on the provided information
 export const updateProfile = async (userId, { username, email, notifications }) => {
+  const token = await getAuthToken();
   const response = await fetch(`${API_BASE_URL}/user/profile/${userId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ username, email, notifications }),
   });
@@ -165,19 +189,23 @@ export const updateProfile = async (userId, { username, email, notifications }) 
 };
 
 // Integration APIs
-
-// Fetches integration settings for a specific chatbot
 export const getIntegrationSettings = async (chatbotId) => {
-  const response = await fetch(`${API_BASE_URL}/integrations/${chatbotId}`);
+  const token = await getAuthToken();
+  const response = await fetch(`${API_BASE_URL}/integrations/${chatbotId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return handleErrors(response);
 };
 
-// Updates integration settings for a specific chatbot
 export const updateIntegrationSettings = async (chatbotId, settings) => {
+  const token = await getAuthToken();
   const response = await fetch(`${API_BASE_URL}/integrations/${chatbotId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(settings),
   });
@@ -185,8 +213,6 @@ export const updateIntegrationSettings = async (chatbotId, settings) => {
 };
 
 // Authentication APIs
-
-// Logs in the user
 export const loginUser = async (email, password) => {
   const response = await fetch(`${API_BASE_URL}/auth/login`, {
     method: "POST",
@@ -198,7 +224,6 @@ export const loginUser = async (email, password) => {
   return handleErrors(response);
 };
 
-// Signs up a new user
 export const signupUser = async (email, password) => {
   const response = await fetch(`${API_BASE_URL}/auth/signup`, {
     method: "POST",
@@ -210,58 +235,51 @@ export const signupUser = async (email, password) => {
   return handleErrors(response);
 };
 
-// Logs out the user
 export const logoutUser = async () => {
+  const token = await getAuthToken();
   const response = await fetch(`${API_BASE_URL}/auth/logout`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
   });
   return handleErrors(response);
 };
 
-
+// Configuration APIs
 export const getConfiguration = async (chatbotId) => {
-  const response = await fetch(`${API_BASE_URL}/configuration?chatbotId=${chatbotId}`);
-  if (!response.ok) {
-    throw new Error('Failed to fetch configuration');
-  }
-  return await response.json();
+  const token = await getAuthToken();
+  const response = await fetch(`${API_BASE_URL}/configuration?chatbotId=${chatbotId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return handleErrors(response);
 };
 
 export const saveConfiguration = async (chatbotId, config) => {
-  console.log("Sending config to server: ", config);
-
+  const token = await getAuthToken();
   const response = await fetch(`${API_BASE_URL}/configuration?chatbotId=${chatbotId}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(config),
   });
-
-  console.log("Response status: ", response.status);
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error("Failed to save configuration: ", errorText);
-    throw new Error('Failed to save configuration');
-  }
-  return await response.json();
+  return handleErrors(response);
 };
 
+// Create user in database
 export const createUserInDB = async (firebaseUid, email) => {
+  const token = await getAuthToken();
   const response = await fetch(`${API_BASE_URL}/auth/signup`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ firebaseUid, email }),
   });
   return response.json();
 };
-
-
-
-

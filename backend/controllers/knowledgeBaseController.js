@@ -1,6 +1,23 @@
 const supabase = require('../config/db');
 
+// Helper function to fetch the user_id based on firebase_uid
+const getUserIdFromFirebaseUid = async (firebaseUid) => {
+  const { data: user, error } = await supabase
+    .from('users')
+    .select('id')
+    .eq('firebase_uid', firebaseUid)
+    .single();
+
+  if (error || !user) {
+    throw new Error('User not found.');
+  }
+
+  return user.id;
+};
+
+// Upload Q&A Pair
 exports.uploadQAPair = async (req, res) => {
+  const { uid } = req.user;
   const {
     chatbotId,
     type,
@@ -22,6 +39,7 @@ exports.uploadQAPair = async (req, res) => {
   } = req.body;
 
   try {
+    const userId = await getUserIdFromFirebaseUid(uid); // Ensure user exists
 
     let newEntry = {
       chatbot_id: chatbotId,
@@ -31,7 +49,7 @@ exports.uploadQAPair = async (req, res) => {
       retrain_initiated_at,
       characters,
       chunks_count,
-      created_at: new Date().toISOString(), 
+      created_at: new Date().toISOString(),
     };
 
     switch (type) {
@@ -66,11 +84,22 @@ exports.uploadQAPair = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+
+// Get Q&A Pairs
 exports.getQAPairs = async (req, res) => {
-  const { chatbotId } = req.query;
+  let { chatbotId } = req.query;
+
+  console.log("Received chatbotId: ", chatbotId);
 
   if (!chatbotId) {
     return res.status(400).json({ error: 'Missing chatbotId parameter' });
+  }
+
+  // Convert chatbotId to an integer
+  chatbotId = parseInt(chatbotId, 10);
+
+  if (isNaN(chatbotId)) {
+    return res.status(400).json({ error: 'Invalid chatbotId' });
   }
 
   try {
@@ -97,6 +126,8 @@ exports.getQAPairs = async (req, res) => {
   }
 };
 
+
+// Update Q&A Pair
 exports.updateQAPair = async (req, res) => {
   const { id } = req.params;
   const {
@@ -164,6 +195,7 @@ exports.updateQAPair = async (req, res) => {
   }
 };
 
+// Delete Q&A Pair
 exports.deleteQAPair = async (req, res) => {
   const { id } = req.params;
 
