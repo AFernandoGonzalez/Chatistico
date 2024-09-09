@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCopy, faGlobe, faCode, faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
+import { Tooltip } from 'react-tooltip';
 
 const Integrations = () => {
     const { id: chatbotId } = useParams();  // Get the chatbotId (which is data_widget_id) from the URL
@@ -33,48 +36,58 @@ const Integrations = () => {
     };
 
     return (
-        <div className="p-8 bg-white shadow rounded-lg mx-auto flex items-center justify-center">
+        <div className="p-8 bg-gray-100 shadow-md rounded-lg mx-auto flex items-center justify-center">
             <div className="w-full max-w-3xl">
 
-                <h1 className="text-3xl font-extrabold mb-6 text-center text-gray-800">Integrate Chatbot to Your Website</h1>
-                <p className="mb-8 text-center text-gray-600">Follow the steps below to seamlessly integrate the chatbot into your website.</p>
+                <h1 className="text-4xl font-bold mb-8 text-center text-gray-900">Integrate Chatbot with Your Website</h1>
+                <p className="mb-10 text-lg text-center text-gray-600">
+                    Follow the steps below to seamlessly integrate the chatbot into your website.
+                    <FontAwesomeIcon icon={faQuestionCircle} className="ml-2 text-gray-400" data-tip="Select your display type, copy the code, and paste it into your website's HTML." />
+                    <Tooltip />
+                </p>
 
-                {/* Step 1 */}
+                {/* Step 1 - Choose Your Display Type */}
                 <div className="mb-8">
-                    <h2 className="text-xl font-semibold mb-4 text-gray-700">1. Choose Your Display Type</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <h2 className="text-2xl font-semibold mb-4 text-gray-800">1. Choose Your Display Type</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {displayTypes.map((type) => (
                             <button
                                 key={type.type}
-                                className={`p-6 border-2 rounded-lg hover:bg-gray-100 transition ${selectedType === type.type ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+                                className={`p-6 border-2 rounded-lg hover:bg-gray-200 transition ${selectedType === type.type ? 'border-blue-500 bg-blue-100' : 'border-gray-300'}`}
                                 onClick={() => setSelectedType(type.type)}
                             >
-                                <p className="text-center font-medium text-gray-700">{type.type}</p>
+                                <div className="flex flex-col items-center">
+                                    <FontAwesomeIcon icon={faGlobe} className="text-gray-600 mb-2 text-2xl" />
+                                    <p className="text-center text-lg font-medium text-gray-700">{type.type}</p>
+                                </div>
                             </button>
                         ))}
                     </div>
                 </div>
 
-                {/* Step 2 */}
+                {/* Step 2 - Copy Your Embed Code */}
                 <div className="mb-8">
-                    <h2 className="text-xl font-semibold mb-4 text-gray-700">2. Copy Your Embed Code</h2>
-                    <div className="relative bg-gray-100 p-4 rounded-lg mb-4">
-                        <code className="text-sm whitespace-pre-line block">{displayTypes.find(type => type.type === selectedType).description}</code>
+                    <h2 className="text-2xl font-semibold mb-4 text-gray-800">2. Copy Your Embed Code</h2>
+                    <div className="relative bg-gray-100 p-6 rounded-lg mb-4 border border-gray-300">
+                        <code className="text-sm text-gray-800 block overflow-x-auto break-words">{displayTypes.find(type => type.type === selectedType).description}</code>
                         <button
                             onClick={handleCopyCode}
-                            className="absolute top-2 right-2 bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700"
+                            className="absolute top-2 right-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center"
                         >
-                            Copy Code
+                            <FontAwesomeIcon icon={faCopy} className="mr-2" /> Copy Code
                         </button>
                     </div>
                 </div>
 
-                {/* Step 3 */}
+                {/* Step 3 - Add to Your Website's HTML */}
                 <div className="mb-8">
-                    <h2 className="text-xl font-semibold mb-4 text-gray-700">3. Add to Your Website's HTML</h2>
-                    <p className="mb-4 text-gray-600">
-                        Insert the copied code into the head or body section of your website's HTML file.
+                    <h2 className="text-2xl font-semibold mb-4 text-gray-800">3. Add to Your Website's HTML</h2>
+                    <p className="mb-4 text-gray-700 leading-relaxed">
+                        Insert the copied code into the head or body section of your website's HTML file. For best performance, place it right before the closing <code className="text-red-500">&lt;/body&gt;</code> tag.
                     </p>
+                    <div className="flex items-center justify-center mt-6">
+                        <FontAwesomeIcon icon={faCode} className="text-4xl text-blue-500" />
+                    </div>
                 </div>
 
             </div>
