@@ -101,7 +101,7 @@ const Dashboard = () => {
               <p className="text-gray-600">{chatbot.description}</p>
               <div className="flex justify-between mt-4">
                 <button
-                  onClick={() => handleViewChatbot(chatbot.id)}
+                  onClick={() => handleViewChatbot(chatbot.data_widget_id)}
                   className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
                 >
                   View Details

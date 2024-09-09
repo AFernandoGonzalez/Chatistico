@@ -1,23 +1,23 @@
+
 (function () {
     let isChatOpen = false;
-    let config = {};  // Define config globally
-    let messages = []; // Store messages locally
-    let chatId = null; // Initialize chatId dynamically
-    let sessionUserId = getOrCreateUserId(); // Use consistent naming for sessionUserId
-    let role_id = 2; // Default role_id for customer
-    let toggleButton; // Define toggleButton globally
+    let config = {};
+    let messages = [];
+    let chatId = null;
+    let sessionUserId = getOrCreateUserId();
+    let role_id = 2;
+    let toggleButton;
 
-    // Get script element and chatbot ID
     const scriptTag = document.currentScript;
     const chatbotId = scriptTag.getAttribute('data-widget-id');
-    const backendUrl = 'http://localhost:8000/api/public/embed/chatbot/configure'; // Consolidated backend API endpoint
+    const backendUrl = 'http://localhost:8000/api/public/embed/chatbot/configure';
 
     function toggleChat() {
         isChatOpen = !isChatOpen;
         const chatbotContainer = document.getElementById('chatbot-container');
         const toggleButtonIcon = document.getElementById('toggle-button-icon');
 
-        function test() {
+        function toggleWS() {
             if (window.innerWidth <= 640) {
                 if (isChatOpen) {
                     toggleButton.classList.add('hidden');
@@ -28,17 +28,13 @@
                 toggleButton.classList.remove('hidden');
             }
         }
-
-        // Initial adjustment based on current window size
-        test();
-
-        // Add event listener to adjust size on window resize
-        window.addEventListener('resize', test);
+        toggleWS();
+        window.addEventListener('resize', toggleWS);
 
         if (isChatOpen) {
             chatbotContainer.style.display = 'block';
             toggleButtonIcon.className = 'fas fa-times';
-            if (messages.length === 0) {  // Avoid redundant fetches
+            if (messages.length === 0) {
                 performGetChatAction('getChatHistory');
             }
         } else {
@@ -62,10 +58,9 @@
     }
 
     function loadChatbot(configuration) {
-        config = configuration; // Assign the fetched configuration to the global config variable
-
-        console.log("config: ", config);
-
+        config = configuration.data;
+        console.log("loadChatbot config", config);
+        
         // Create chatbot container
         const chatbotContainer = document.createElement('div');
         chatbotContainer.id = 'chatbot-container';
@@ -75,9 +70,9 @@
         chatbotContainer.style.minWidth = '350px';
         chatbotContainer.style.height = '600px';
         chatbotContainer.style.maxHeight = '600px';
-        chatbotContainer.style.backgroundColor = '#ffffff'; // Default background
-        chatbotContainer.style.display = 'none'; // Start hidden
-        chatbotContainer.style.zIndex = '10'; // Start hidden
+        chatbotContainer.style.backgroundColor = '#ffffff';
+        chatbotContainer.style.display = 'none';
+        chatbotContainer.style.zIndex = '10';
         document.body.appendChild(chatbotContainer);
 
         // Adjust size for responsiveness
@@ -98,18 +93,14 @@
                 chatbotContainer.style.minWidth = '350px';
                 chatbotContainer.style.height = '600px';
                 chatbotContainer.style.maxHeight = '600px';
-                chatbotContainer.style.bottom = ''; // Reset
-                chatbotContainer.style.right = ''; // Reset
-                chatbotContainer.style.top = ''; // Reset
-                chatbotContainer.style.left = ''; // Reset
-                chatbotContainer.style.borderRadius = ''; // Reset
+                chatbotContainer.style.bottom = '';
+                chatbotContainer.style.right = '';
+                chatbotContainer.style.top = '';
+                chatbotContainer.style.left = '';
+                chatbotContainer.style.borderRadius = '';
             }
         }
-
-        // Initial adjustment based on current window size
         adjustChatbotSize();
-
-        // Add event listener to adjust size on window resize
         window.addEventListener('resize', adjustChatbotSize);
 
         // Chat Header
@@ -139,7 +130,7 @@
         // Close button in chat header
         const closeButton = document.createElement('button');
         closeButton.style.color = config.text_color;
-        closeButton.innerHTML = '<i class="fas fa-times"></i>'; // Close icon
+        closeButton.innerHTML = '<i class="fas fa-times"></i>';
         closeButton.onclick = toggleChat;
         chatHeader.appendChild(closeButton);
 
@@ -189,12 +180,12 @@
         function adjustToggleButtonVisibility() {
             if (window.innerWidth <= 640) {
                 if (isChatOpen) {
-                    toggleButton.classList.add('hidden'); // Hide toggle button when chat is open on small screens
+                    toggleButton.classList.add('hidden');
                 } else {
-                    toggleButton.classList.remove('hidden'); // Show toggle button when chat is closed on small screens
+                    toggleButton.classList.remove('hidden');
                 }
             } else {
-                toggleButton.classList.remove('hidden'); // Always show toggle button on larger screens
+                toggleButton.classList.remove('hidden');
             }
         }
 
@@ -219,8 +210,8 @@
         // Auto open chat if configured to do so
         if (config.auto_open_behavior === 'auto') {
             setTimeout(() => {
-                toggleChat();  // Opens the chat automatically
-            }, config.auto_open_delay || 0);  // Use delay if specified, otherwise 0
+                toggleChat();
+            }, config.auto_open_delay || 0);
         }
     }
 
@@ -342,15 +333,12 @@
         }
 
         if (!chatId) {
-            console.log('No chatId, creating a new chat...');
-            performPostChatAction('createNewChat');  // Create a new chat if chatId is null
+            performPostChatAction('createNewChat'); 
             return;
         }
-
-        // Optimistically render the user's message only on the client-side
         const userMessage = { text, role_id: role_id };
         messages.push(userMessage);
-        displayMessages(messages);  // Render all messages with the new user message
+        displayMessages(messages);
         inputField.value = '';
 
         // Display typing indicator for the bot response
@@ -394,6 +382,5 @@
     loadFontAwesome();
     loadTailwind();
 
-    // Fetch chatbot configuration and load the widget
     performGetChatAction('getConfiguration');
 })();

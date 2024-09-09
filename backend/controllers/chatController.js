@@ -2,28 +2,67 @@ const supabase = require('../config/db');
 const { getAIResponse } = require('../services/openaiService');
 
 // Updated getChatHistory controller
+// exports.getChatHistory = async (req, res) => {
+//   try {
+//     const { chatbotId, sessionUserId } = req.query;
+
+//     if (!chatbotId) {
+//       return res.status(400).json({ error: 'Chatbot ID is required' });
+//     }
+
+//     // Fetch all chats associated with the user and chatbot
+//     let chatQuery = supabase
+//       .from('chats')
+//       .select(`
+//         id, last_timestamp, chatbot_version, customer_id, important, closed,
+//         messages (*)
+//       `)
+//       .eq('chatbot_id', chatbotId)
+//       .eq('session_user_id', sessionUserId);
+
+//     const { data: chats, error } = await chatQuery;
+
+//     if (error) {
+//       return res.status(500).json({ error: error.message });
+//     }
+
+//     res.status(200).json({ chats });
+//   } catch (error) {
+//     console.error('Failed to fetch chat history:', error);
+//     res.status(500).json({ error: 'Failed to fetch chat history' });
+//   }
+// };
 exports.getChatHistory = async (req, res) => {
   try {
     const { chatbotId, sessionUserId } = req.query;
 
-    if (!chatbotId) {
-      return res.status(400).json({ error: 'Chatbot ID is required' });
+    if (!chatbotId || !sessionUserId) {
+      return res.status(400).json({ error: 'Chatbot ID and Session User ID are required.' });
+    }
+
+    // Fetch the chatbot's actual ID from the chatbots table using the data_widget_id (UUID)
+    const { data: chatbot, error: chatbotError } = await supabase
+      .from('chatbots')
+      .select('id')
+      .eq('data_widget_id', chatbotId)
+      .single();
+
+    if (chatbotError || !chatbot) {
+      return res.status(400).json({ error: 'Chatbot not found' });
     }
 
     // Fetch all chats associated with the user and chatbot
-    let chatQuery = supabase
+    const { data: chats, error: chatError } = await supabase
       .from('chats')
       .select(`
         id, last_timestamp, chatbot_version, customer_id, important, closed,
         messages (*)
       `)
-      .eq('chatbot_id', chatbotId)
+      .eq('chatbot_id', chatbot.id)  // Use the chatbot's integer ID here
       .eq('session_user_id', sessionUserId);
 
-    const { data: chats, error } = await chatQuery;
-
-    if (error) {
-      return res.status(500).json({ error: error.message });
+    if (chatError) {
+      return res.status(500).json({ error: chatError.message });
     }
 
     res.status(200).json({ chats });
@@ -33,14 +72,47 @@ exports.getChatHistory = async (req, res) => {
   }
 };
 
+exports.newMessage = async (req, res) => {
+  const { chatbotId, sessionUserId } = req.body;
+
+  if (!chatbotId || !sessionUserId) {
+    return res.status(400).json({ error: 'Chatbot ID and Session User ID are required.' });
+  }
+
+  try {
+    // Fetch the chatbot's actual ID from the chatbots table using the data_widget_id (UUID)
+    const { data: chatbot, error: chatbotError } = await supabase
+      .from('chatbots')
+      .select('id')
+      .eq('data_widget_id', chatbotId)
+      .single();
+
+    if (chatbotError || !chatbot) {
+      return res.status(400).json({ error: 'Chatbot not found' });
+    }
+
+    // Insert a new chat into the chats table using the integer chatbot_id
+    const { data: newChat, error: newChatError } = await supabase
+      .from('chats')
+      .insert([{ chatbot_id: chatbot.id, session_user_id: sessionUserId, last_timestamp: new Date().toISOString() }])
+      .select('id')
+      .single();
+
+    if (newChatError) {
+      console.error('Error creating new chat:', newChatError);
+      return res.status(500).json({ error: 'Failed to create new chat.' });
+    }
+
+    res.status(201).json({ chatId: newChat.id });
+  } catch (error) {
+    console.error('Failed to create new chat:', error);
+    res.status(500).json({ error: 'Failed to create new chat.' });
+  }
+};
+
+
 exports.sendMessage = async (req, res) => {
   const { chatId, text, role_id, sessionUserId } = req.body;
-
-  console.log("exports.sendMessage", {
-    chatId, text, role_id, sessionUserId
-  });
-
-
 
   if (!chatId || !text || !role_id || !sessionUserId) {
     return res.status(400).json({ error: 'Chat ID, text, role ID, and Session User ID are required.' });
@@ -93,29 +165,29 @@ exports.sendMessage = async (req, res) => {
   }
 };
 
-exports.newMessage = async (req, res) => {
-  const { chatbotId, sessionUserId } = req.body;
+// exports.newMessage = async (req, res) => {
+//   const { chatbotId, sessionUserId } = req.body;
 
-  if (!chatbotId || !sessionUserId) {
-    return res.status(400).json({ error: 'Chatbot ID and Session User ID are required.' });
-  }
+//   if (!chatbotId || !sessionUserId) {
+//     return res.status(400).json({ error: 'Chatbot ID and Session User ID are required.' });
+//   }
 
-  try {
-    // Insert a new chat into the chats table
-    const { data: newChat, error: newChatError } = await supabase
-      .from('chats')
-      .insert([{ chatbot_id: chatbotId, session_user_id: sessionUserId, last_timestamp: new Date().toISOString() }])
-      .select('id')
-      .single();
+//   try {
+//     // Insert a new chat into the chats table
+//     const { data: newChat, error: newChatError } = await supabase
+//       .from('chats')
+//       .insert([{ chatbot_id: chatbotId, session_user_id: sessionUserId, last_timestamp: new Date().toISOString() }])
+//       .select('id')
+//       .single();
 
-    if (newChatError) {
-      console.error('Error creating new chat:', newChatError);
-      return res.status(500).json({ error: 'Failed to create new chat.' });
-    }
+//     if (newChatError) {
+//       console.error('Error creating new chat:', newChatError);
+//       return res.status(500).json({ error: 'Failed to create new chat.' });
+//     }
 
-    res.status(201).json({ chatId: newChat.id });
-  } catch (error) {
-    console.error('Failed to create new chat:', error);
-    res.status(500).json({ error: 'Failed to create new chat.' });
-  }
-};
+//     res.status(201).json({ chatId: newChat.id });
+//   } catch (error) {
+//     console.error('Failed to create new chat:', error);
+//     res.status(500).json({ error: 'Failed to create new chat.' });
+//   }
+// };

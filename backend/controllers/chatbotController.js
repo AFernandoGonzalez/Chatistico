@@ -1,4 +1,5 @@
 const supabase = require('../config/db');
+const { v4: uuidv4 } = require('uuid');
 
 const getChatbots = async (req, res) => {
   const { uid } = req.user; // Assuming you are using the authenticate middleware to populate req.user with firebase_uid
@@ -61,10 +62,13 @@ const createChatbot = async (req, res) => {
       return res.status(404).json({ message: 'User not found.' });
     }
 
+    // Generate a UUID for data_widget_id
+    const dataWidgetId = uuidv4();
+
     // Create the chatbot
     const { data: newChatbot, error: chatbotError } = await supabase
       .from('chatbots')
-      .insert([{ user_id: user.id, name, description }])
+      .insert([{ user_id: user.id, name, description, data_widget_id: dataWidgetId }])
       .select('*')
       .single();
 
@@ -95,11 +99,15 @@ module.exports = {
 const getChatbotById = async (req, res) => {
   const { id } = req.params;
 
+  // console.log("getChatbotById: ", getChatbotById);
+  
+
   try {
     const { data: chatbot, error } = await supabase
       .from('chatbots')
       .select('*')
-      .eq('id', id)
+      // .eq('id', id)
+      .eq('data_widget_id', id)
       .single();
 
     if (error) {

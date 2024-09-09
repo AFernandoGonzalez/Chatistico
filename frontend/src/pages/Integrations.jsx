@@ -1,20 +1,23 @@
 import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 
 const Integrations = () => {
+    const { id: chatbotId } = useParams();  // Get the chatbotId (which is data_widget_id) from the URL
     const [selectedType, setSelectedType] = useState('Floating Chat');
+    const apiBaseUrl = import.meta.env.VITE_EMBED_URL;
 
     const displayTypes = [
         {
             type: 'Floating Chat',
-            description: `<script async data-id="1244177941" id="chatling-embed-script" type="text/javascript" src="https://chatling.ai/js/embed.js"></script>`
+            description: `<script async data-widget-id="${chatbotId}" id="chatling-embed-script" type="text/javascript" src="${apiBaseUrl}/js/widgetLoader.js"></script>`
         },
         {
             type: 'Inline',
-            description: `<div id="chatling-inline-bot" style="width: 100%; height: 500px;"></div>\n<script async data-id="1244177941" data-display="page_inline" id="chatling-embed-script" type="text/javascript" src="https://chatling.ai/js/embed.js"></script>`
+            description: `<div id="chatling-inline-bot" style="width: 100%; height: 500px;"></div>\n<script async data-widget-id="${chatbotId}" data-display="page_inline" id="chatling-embed-script" type="text/javascript" src="${apiBaseUrl}/js/widgetLoader.js"></script>`
         },
         {
             type: 'Fullscreen',
-            description: `<script async data-id="1244177941" id="chatling-embed-script" data-display="fullscreen" type="text/javascript" src="https://chatling.ai/js/embed.js"></script>`
+            description: `<script async data-widget-id="${chatbotId}" id="chatling-embed-script" data-display="fullscreen" type="text/javascript" src="${apiBaseUrl}/js/widgetLoader.js"></script>`
         }
     ];
 
