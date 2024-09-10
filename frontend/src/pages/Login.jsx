@@ -1,16 +1,22 @@
-// src/pages/Login.js
-
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
 const Login = () => {
   const { login, authError, user } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
+
+  const handleLogin = async (e) => {
     e.preventDefault();
-    login(email, password);
+    await login(email, password);
   };
 
   return (
@@ -52,12 +58,6 @@ const Login = () => {
         <p className="text-center text-gray-600 mt-4">
           Don't have an account? <a href="/signup" className="text-secondary hover:text-secondary-dark">Sign Up</a>
         </p>
-
-        {user && (
-          <div className="text-center text-gray-900 mt-4">
-            Welcome, {user.email}!
-          </div>
-        )}
       </form>
     </div>
   );

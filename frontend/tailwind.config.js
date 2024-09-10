@@ -7,20 +7,20 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#4F46E5', // Equivalent to indigo-600
-          dark: '#3730A3', // Equivalent to indigo-700
-          light: '#818CF8', // Equivalent to indigo-400
+          DEFAULT: '#4F46E5',
+          dark: '#3730A3', 
+          light: '#818CF8',
         },
         secondary: {
-          DEFAULT: '#3B82F6', // Equivalent to blue-600
-          dark: '#2563EB', // Equivalent to blue-700
-          light: '#93C5FD', // Equivalent to blue-400
+          DEFAULT: '#3B82F6', 
+          dark: '#2563EB',
+          light: '#93C5FD',
         },
-        accent: '#FFFFFF', // White for buttons and text
-        background: '#F9FAFB', // Light gray background equivalent to gray-50
-        darkBackground: '#111827', // Dark background for footer, gray-900 equivalent
-        text: '#4B5563', // Gray text equivalent to gray-600
-        white: '#FFFFFF', // White text
+        accent: '#FFFFFF',
+        background: '#F9FAFB',
+        darkBackground: '#111827',
+        text: '#4B5563',
+        white: '#FFFFFF',
         gray: {
           100: '#F3F4F6',
           200: '#E5E7EB',
@@ -30,7 +30,7 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'], // Use a modern, clean font like Inter
+        sans: ['Inter', 'sans-serif'],
       },
       fontSize: {
         base: '16px',

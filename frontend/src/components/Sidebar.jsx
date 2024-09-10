@@ -1,36 +1,78 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useContext } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faChartBar, faCommentDots, faThLarge, faCog, faUser, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faChartBar, faUser, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
+import { AuthContext } from '../context/AuthContext';
 
 const Sidebar = () => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { logout } = useContext(AuthContext); // Get the logout function from AuthContext
+  const navigate = useNavigate(); // Use navigate for redirection
+
+  // Handle logout and redirect to login page
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   return (
     <motion.div
-      onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
-      className={`fixed top-0 left-0 h-full bg-blue-600 flex flex-col items-center z-10`}
+      className={`fixed top-0 left-0 h-full bg-primary flex flex-col items-center z-10 transition-all duration-300`}
       initial={{ width: '4rem' }}
-      animate={{ width: isExpanded ? '11rem' : '4rem' }}
+      animate={{ width: isExpanded ? '16rem' : '4rem' }}
       transition={{ duration: 0.2 }}
     >
-      <div className="mt-4">
-        <button className="p-3 hover:bg-blue-700 rounded-full text-white">
-          <FontAwesomeIcon icon={faPlus} />
-        </button>
+      {/* Sidebar Header (for larger screens) */}
+      <div className="p-4 flex justify-center items-center">
+        <motion.button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="bg-primary-dark p-2 text-white rounded-full shadow-lg hover:bg-primary-light transition"
+        >
+          <FontAwesomeIcon icon={isExpanded ? faThLarge : faPlus} />
+        </motion.button>
       </div>
-      <motion.div
-        className="flex-1 mt-6 w-full"
-      >
-        <nav className="flex flex-col space-y-4 items-start">
+
+      {/* Toggle and Menu Items */}
+      <motion.div className="flex flex-col h-full w-full">
+        {/* Navigation Items */}
+        <nav className="flex-1 mt-6 w-full space-y-4 items-start">
           <NavItem icon={faChartBar} label="Dashboard" isExpanded={isExpanded} to="/dashboard" />
           <NavItem icon={faUser} label="Profile" isExpanded={isExpanded} to="/dashboard/profile" />
-          <NavItem icon={faSignOutAlt} label="Logout" isExpanded={isExpanded} to="/logout" />
         </nav>
+
+        {/* Logout Button pushed to the bottom */}
+        <div className="mt-auto w-full">
+          <button
+            onClick={handleLogout}
+            className="w-full p-3 text-white flex items-center hover:bg-primary-dark transition-colors duration-300"
+          >
+            <FontAwesomeIcon icon={faSignOutAlt} className="mr-3" />
+            <motion.span
+              className="text-white"
+              initial={{ opacity: 0, width: 0 }}
+              animate={{ opacity: isExpanded ? 1 : 0, width: isExpanded ? 'auto' : 0 }}
+              transition={{ duration: 0.3 }}
+              style={{ whiteSpace: 'nowrap', overflow: 'hidden' }}
+            >
+              Logout
+            </motion.span>
+          </button>
+        </div>
       </motion.div>
+
+      {/* Sidebar Toggle Button (for small screens) */}
+      <div className="fixed bottom-12 left-4 lg:hidden">
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="bg-primary-dark p-2 text-white rounded-full shadow-lg hover:bg-primary-light transition"
+        >
+          <FontAwesomeIcon icon={isExpanded ? faThLarge : faPlus} />
+        </button>
+      </div>
     </motion.div>
+
   );
 };
 
