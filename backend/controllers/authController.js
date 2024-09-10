@@ -3,19 +3,16 @@ const supabase = require('../config/db'); // Assuming you're using Supabase for 
 
 // Signup Function
 exports.signup = async (req, res) => {
-  const { firebaseUid, email } = req.body; // Ensure you are receiving these fields
+  const { firebaseUid, email } = req.body;
 
-  console.log("firebaseUid, email: ", firebaseUid, email);
-  
   if (!firebaseUid || !email) {
     return res.status(400).json({ message: 'Firebase UID and email are required.' });
   }
 
   try {
-    // Insert the user into the database
     const { data: newUser, error } = await supabase
       .from('users')
-      .insert([{ firebase_uid: firebaseUid, email }]) // Ensure firebase_uid is passed
+      .insert([{ firebase_uid: firebaseUid, email }])
       .select('*')
       .single();
 
@@ -34,7 +31,7 @@ exports.signup = async (req, res) => {
 exports.login = async (req, res) => {
   const { email, password } = req.body;
   try {
-    // Here you can use Firebase to verify the user's email and password (Firebase Auth does this in the frontend)
+
     res.status(200).json({ message: 'Logged in successfully' });
   } catch (error) {
     res.status(400).json({ error: error.message });

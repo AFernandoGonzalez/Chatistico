@@ -1,53 +1,65 @@
 // src/pages/Signup.js
 
 import React, { useState, useContext } from 'react';
-import { AuthContext } from '../context/AuthContext'; // Import the AuthContext
-import { useNavigate } from 'react-router-dom'; // Use for redirecting after signup
+import { AuthContext } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Signup = () => {
-  const { signup } = useContext(AuthContext); // Use signup function from AuthContext
+  const { signup } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
-  const navigate = useNavigate(); // For navigation after signup
+  const navigate = useNavigate();
 
   const handleSignup = async (e) => {
     e.preventDefault();
-    setError(null); // Clear any previous error
+    setError(null);
     try {
-      await signup(email, password); // Call signup function from context
+      await signup(email, password);
       alert('Signup successful!');
-      navigate('/dashboard'); // Redirect to dashboard after successful signup
+      navigate('/dashboard');
     } catch (error) {
       console.error('Error signing up:', error);
-      setError(error.message); // Set error message
+      setError(error.message);
     }
   };
 
   return (
-    <form onSubmit={handleSignup} className="p-6 bg-white shadow-md rounded-md max-w-md mx-auto mt-8">
-      <h1 className="text-2xl font-bold mb-4">Sign Up</h1>
-      {error && <div className="text-red-500 mb-4">{error}</div>} {/* Show error if exists */}
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Email"
-        className="w-full p-2 mb-4 border border-gray-300 rounded-md"
-        required
-      />
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Password"
-        className="w-full p-2 mb-4 border border-gray-300 rounded-md"
-        required
-      />
-      <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">
-        Sign Up
-      </button>
-    </form>
+    <div className="fixed top-10 w-screen min-h-screen md:top-0 bg-background flex items-center justify-center px-4">
+      <form onSubmit={handleSignup} className="w-full max-w-md p-6 md:p-8 bg-white shadow-xl rounded-lg">
+        <h1 className="text-3xl md:text-4xl font-bold text-primary text-center mb-6">Create Your Account</h1>
+        {error && <div className="text-red-500 text-center mb-4">{error}</div>}
+
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email"
+          className="w-full px-4 py-3 mb-4 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          required
+        />
+
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+          className="w-full px-4 py-3 mb-6 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          required
+        />
+
+        <button
+          type="submit"
+          className="w-full bg-primary text-white py-3 rounded-full font-semibold shadow-lg hover:bg-primary-dark transition-all"
+        >
+          Sign Up
+        </button>
+
+        <p className="text-center text-gray-600 mt-4">
+          Already have an account? <a href="/login" className="text-secondary hover:text-secondary-dark">Login</a>
+        </p>
+      </form>
+    </div>
   );
 };
 

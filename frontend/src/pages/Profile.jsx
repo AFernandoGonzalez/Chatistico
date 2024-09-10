@@ -1,9 +1,11 @@
+// src/pages/Profile.js
+
 import React, { useState, useContext, useEffect } from 'react';
-import { AuthContext } from '../context/AuthContext'; // Import the AuthContext
-import { updateProfile } from '../services/api'; // Import the API function for updating the profile
+import { AuthContext } from '../context/AuthContext';
+import { updateProfile } from '../services/api';
 
 const Profile = () => {
-  const { user } = useContext(AuthContext); // Use AuthContext to get the current user
+  const { user } = useContext(AuthContext);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [notifications, setNotifications] = useState(true);
@@ -12,7 +14,6 @@ const Profile = () => {
     if (user) {
       setUsername(user.username);
       setEmail(user.email);
-      // Assume `notifications` setting is part of user data
       setNotifications(user.notifications || true);
     }
   }, [user]);
@@ -28,47 +29,53 @@ const Profile = () => {
   };
 
   return (
-    <div className="p-6 bg-white shadow-md rounded-md max-w-4xl mx-auto mt-8">
-      <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Settings</h1>
-      <div className="mb-4">
-        <label className="block text-gray-600 mb-2">
-          Username:
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
-          />
-        </label>
+    <div className="bg-background min-h-screen h-full py-8">
+      <div className="container mx-auto max-w-4xl p-6  ">
+        <h1 className="text-3xl font-bold text-primary mb-8">Account Settings</h1>
+
+        <div className="space-y-6">
+          <div>
+            <label className="block text-gray-600 font-semibold mb-2">Username</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-600 font-semibold mb-2">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="flex items-center text-gray-600 font-semibold">
+              Notifications
+              <input
+                type="checkbox"
+                checked={notifications}
+                onChange={() => setNotifications(!notifications)}
+                className="ml-3 h-5 w-5 text-primary focus:ring-primary border-gray-300 rounded"
+              />
+            </label>
+          </div>
+        </div>
+
+        <button
+          onClick={handleSaveSettings}
+          className="mt-8 w-full bg-primary text-white py-3 rounded-full font-semibold shadow-lg hover:bg-primary-dark transition-all"
+        >
+          Save Settings
+        </button>
       </div>
-      <div className="mb-4">
-        <label className="block text-gray-600 mb-2">
-          Email:
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
-          />
-        </label>
-      </div>
-      <div className="mb-4">
-        <label className="block text-gray-600 mb-2">
-          Notifications:
-          <input
-            type="checkbox"
-            checked={notifications}
-            onChange={() => setNotifications(!notifications)}
-            className="ml-2"
-          />
-        </label>
-      </div>
-      <button
-        onClick={handleSaveSettings}
-        className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
-      >
-        Save Settings
-      </button>
     </div>
   );
 };

@@ -5,7 +5,7 @@ import { AuthContext } from './AuthContext';  // Get the current user from AuthC
 export const ChatbotContext = createContext();
 
 export const ChatbotProvider = ({ children }) => {
-  const { user } = useContext(AuthContext);  // Get the user from AuthContext
+  const { user } = useContext(AuthContext);
   const [chatbots, setChatbots] = useState([]);
   const [loading, setLoading] = useState(true);
   
@@ -13,7 +13,7 @@ export const ChatbotProvider = ({ children }) => {
     if (user) {
       const fetchChatbots = async () => {
         try {
-          const data = await getChatbots(user.uid);  // Pass the user's uid to the API
+          const data = await getChatbots(user.uid); 
           setChatbots(data);
         } catch (error) {
           console.error('Error fetching chatbots:', error);
