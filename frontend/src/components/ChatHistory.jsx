@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faStar, faEnvelope, faUserCircle } from '@fortawesome/free-solid-svg-icons';
-import { getChatHistory } from '../services/api';
+import { getAllChatsByChatbot } from '../services/api';
 import { AuthContext } from '../context/AuthContext';
 import { useParams } from 'react-router-dom';
 
@@ -10,29 +10,44 @@ const ChatHistory = () => {
   const [chatLogs, setChatLogs] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [chats, setChats] = useState([]);
-
-  // Get the user from AuthContext
+  const chatEndRef = useRef(null);
   const { user } = useContext(AuthContext);
 
-  console.log("user: ", user );
+  console.log("user: ", user);
   console.log("chatbotid", chatbotId);
-  
 
   useEffect(() => {
-    const fetchChatHistory = async () => {
-      if (user && user.id && chatbotId) {
+    const fetchAllChats = async () => {
+      if (chatbotId) {
         try {
-          const response = await getChatHistory(user.id, chatbotId);
-          setChats(response.chats);
+          const response = await getAllChatsByChatbot(chatbotId);
+
+          // Sort chats by the newest ones first (based on last_timestamp)
+          const sortedChats = response.chats.sort(
+            (a, b) => new Date(b.last_timestamp) - new Date(a.last_timestamp)
+          );
+
+          setChats(sortedChats); // Set the sorted chats state
+
+          // Set default chat to be the first one (newest)
+          if (sortedChats && sortedChats.length > 0) {
+            setSelectedChat(sortedChats[0]);
+            setChatLogs(sortedChats[0].messages);
+          }
         } catch (error) {
-          console.error('Failed to fetch chat history:', error);
+          console.error('Failed to fetch all chats for chatbot:', error);
         }
       }
     };
 
-    fetchChatHistory();
-  }, [user, chatbotId]);
+    fetchAllChats();
+  }, [chatbotId]);
 
+  useEffect(() => {
+    if (chatLogs.length > 0) {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatLogs]);
   // Handler for selecting a chat
   const handleChatSelect = (chat) => {
     setSelectedChat(chat);
@@ -40,26 +55,28 @@ const ChatHistory = () => {
   };
 
   return (
-    <div className="flex h-screen">
-      {/* Left Sidebar for User Conversations */}
-      <div className="w-1/4 bg-white border-r p-4 overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">Conversations</h2>
+    <div className="flex h-screen bg-background">
+      <div className="min-w-10 bg-white border-r p-2 overflow-y-auto">
+        <div className="flex justify-between items-center my-6">
+          <h2 className="text-lg font-semibold text-gray-900">Conversations</h2>
         </div>
-        <ul className="space-y-4">
+        <ul className="">
           {chats.map((chat) => (
             <li
               key={chat.id}
               onClick={() => handleChatSelect(chat)}
-              className={`p-2 flex items-center cursor-pointer rounded-md ${selectedChat && selectedChat.id === chat.id ? 'bg-blue-100' : 'hover:bg-gray-100'
-                }`}
+              className={`p-4 flex items-center cursor-pointer rounded-lg ${
+                selectedChat && selectedChat.id === chat.id
+                  ? 'bg-primary text-white'
+                  : 'hover:bg-gray-100'
+              }`}
             >
               <FontAwesomeIcon icon={faUserCircle} className="text-gray-400 mr-3 text-2xl" />
               <div className="flex-grow">
                 <p className="font-semibold">
                   Chat with {chat.customer?.name || `Customer ID: ${chat.customer_id}`}
                 </p>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm">
                   Last message: {new Date(chat.last_timestamp).toLocaleString()}
                 </p>
               </div>
@@ -68,35 +85,42 @@ const ChatHistory = () => {
         </ul>
       </div>
 
-      {/* Main Chat Area */}
-      <div className="flex-grow flex flex-col p-6 bg-gray-50">
+      <div className="flex-grow flex flex-col p-6 bg-gray-100">
         {selectedChat ? (
           <>
             <div className="flex items-center mb-4">
               <div className="flex-grow">
-                <h2 className="text-lg font-semibold">
+                <h2 className="text-xl font-semibold text-gray-900">
                   Chat with {selectedChat.customer?.name || `Customer ID: ${selectedChat.customer_id}`}
                 </h2>
               </div>
               <div className="flex space-x-3">
                 {/* Action buttons */}
-                <button className="p-2 text-gray-500 hover:text-gray-700">
+                {/* <button className="p-2 text-gray-600 hover:text-primary-dark">
                   <FontAwesomeIcon icon={faStar} />
                 </button>
-                <button className="p-2 text-gray-500 hover:text-gray-700">
+                <button className="p-2 text-gray-600 hover:text-primary-dark">
                   <FontAwesomeIcon icon={faEnvelope} />
-                </button>
+                </button> */}
               </div>
             </div>
             <div className="flex-grow overflow-y-auto">
               {chatLogs.map((log, index) => (
-                <div key={index} className={`flex items-start mb-4 ${log.role_id === 2 ? 'justify-start' : 'justify-end'}`}>
-                  <div className={`max-w-xs p-4 rounded-lg ${log.role_id === 2 ? 'bg-gray-200' : 'bg-blue-500 text-white'}`}>
+                <div
+                  key={index}
+                  className={`flex items-start mb-4 ${log.role_id === 2 ? 'justify-start' : 'justify-end'}`}
+                >
+                  <div
+                    className={`max-w-xs p-4 rounded-lg ${
+                      log.role_id === 2 ? 'bg-gray-200 text-gray-800' : 'bg-primary text-white'
+                    }`}
+                  >
                     <p className="text-sm">{log.text}</p>
                     <p className="text-xs text-gray-400 mt-1">{new Date(log.timestamp).toLocaleString()}</p>
                   </div>
                 </div>
               ))}
+               <div ref={chatEndRef} />
             </div>
           </>
         ) : (

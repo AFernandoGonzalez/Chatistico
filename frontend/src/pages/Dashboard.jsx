@@ -4,6 +4,7 @@ import { ChatbotContext } from '../context/ChatbotContext';
 import { createChatbot, deleteChatbot, renameChatbot } from '../services/api';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
+import { faPlus, faChartBar, faUser, faPen, faTrash } from '@fortawesome/free-solid-svg-icons'
 
 const Dashboard = () => {
   const { chatbots, setChatbots } = useContext(ChatbotContext);
@@ -12,14 +13,14 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // State for delete confirmation
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [newChatbotName, setNewChatbotName] = useState('');
   const [newChatbotDescription, setNewChatbotDescription] = useState('');
   const [renameChatbotId, setRenameChatbotId] = useState(null);
-  const [chatbotToDelete, setChatbotToDelete] = useState(null); // Store chatbot to delete
+  const [chatbotToDelete, setChatbotToDelete] = useState(null);
 
   const handleCreateChatbot = async (e) => {
-    e.preventDefault(); // Prevent form submission refresh
+    e.preventDefault();
     if (!user) return;
     try {
       setLoading(true);
@@ -30,31 +31,26 @@ const Dashboard = () => {
       setNewChatbotDescription('');
       toast.success('Chatbot created successfully!');
     } catch (error) {
-      console.error('Error creating chatbot:', error);
       toast.error('Failed to create chatbot.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle chatbot deletion with confirmation modal
   const handleDeleteChatbot = async () => {
     if (!chatbotToDelete) return;
     try {
       await deleteChatbot(chatbotToDelete.id);
       setChatbots(chatbots.filter((chatbot) => chatbot.id !== chatbotToDelete.id));
       setIsDeleteModalOpen(false);
-      setChatbotToDelete(null);
       toast.success('Chatbot deleted successfully!');
     } catch (error) {
-      console.error('Error deleting chatbot:', error);
       toast.error('Failed to delete chatbot.');
     }
   };
 
-  // Handle chatbot renaming
   const handleRenameChatbot = async (e) => {
-    e.preventDefault(); // Prevent form submission refresh
+    e.preventDefault();
     if (!newChatbotName || !newChatbotDescription) {
       toast.error('Name and description are required.');
       return;
@@ -65,12 +61,10 @@ const Dashboard = () => {
       setIsRenameModalOpen(false);
       toast.success('Chatbot renamed successfully!');
     } catch (error) {
-      console.error('Error renaming chatbot:', error);
       toast.error('Failed to rename chatbot.');
     }
   };
 
-  // Open rename modal
   const openRenameModal = (id, name, description) => {
     setRenameChatbotId(id);
     setNewChatbotName(name);
@@ -78,7 +72,6 @@ const Dashboard = () => {
     setIsRenameModalOpen(true);
   };
 
-  // Open delete confirmation modal
   const openDeleteModal = (chatbot) => {
     setChatbotToDelete(chatbot);
     setIsDeleteModalOpen(true);
@@ -89,69 +82,69 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex-grow bg-gray-100 p-6">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-primary">Dashboard</h1>
+    <div className="flex-grow bg-gray-100 p-4 md:p-6">
+      <div className="flex justify-between items-center mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-primary">Dashboard</h1>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="px-6 py-3 bg-primary text-white font-semibold rounded-full shadow-md hover:bg-primary-dark transition"
+          className="px-4 md:px-6 py-2 md:py-3 bg-primary text-white font-semibold rounded-full shadow-md hover:bg-primary-dark transition"
         >
-          Create Chatbot
+          <span className="hidden sm:inline">Create Chatbot</span>
+          <span className="sm:hidden"><i className="fa fa-plus" /></span>
         </button>
       </div>
-
+    
       {loading ? (
         <p className="text-gray-600 text-lg">Loading...</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {chatbots.map((chatbot) => (
-            <div key={chatbot.id} className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
-              <h3 className="text-xl font-bold text-gray-800 mb-2">{chatbot.name}</h3>
+            <div key={chatbot.id} className="bg-white p-4 md:p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+              <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-2">{chatbot.name}</h3>
               <p className="text-gray-600 mb-4">{chatbot.description}</p>
-              <div className="flex justify-between">
-                <button
+              <div className="flex justify-between items-center space-x-2">
+                <span
                   onClick={() => handleViewChatbot(chatbot.data_widget_id)}
-                  className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition"
+                  className="cursor-pointer text-primary hover:underline"
                 >
                   View Details
-                </button>
+                </span>
                 <button
                   onClick={() => openRenameModal(chatbot.id, chatbot.name, chatbot.description)}
-                  className="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition"
+                  className="p-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition"
                 >
-                  Rename
+                  <i className="fa fa-pen" />
                 </button>
                 <button
                   onClick={() => openDeleteModal(chatbot)}
-                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition"
+                  className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition"
                 >
-                  Delete
+                  <i className="fa fa-trash" />
                 </button>
               </div>
             </div>
           ))}
         </div>
       )}
-
-      {/* Modal for creating a new chatbot */}
+    
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
-            <h2 className="text-2xl font-bold mb-4 text-gray-900">Create New Chatbot</h2>
+            <h2 className="text-xl md:text-2xl font-bold mb-4 text-gray-900">Create New Chatbot</h2>
             <form onSubmit={handleCreateChatbot}>
               <input
                 type="text"
                 placeholder="Chatbot Name"
                 value={newChatbotName}
                 onChange={(e) => setNewChatbotName(e.target.value)}
-                className="w-full p-4 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                className="w-full p-3 md:p-4 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                 required
               />
               <textarea
                 placeholder="Chatbot Description"
                 value={newChatbotDescription}
                 onChange={(e) => setNewChatbotDescription(e.target.value)}
-                className="w-full p-4 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                className="w-full p-3 md:p-4 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                 required
               />
               <div className="flex justify-end">
@@ -173,26 +166,25 @@ const Dashboard = () => {
           </div>
         </div>
       )}
-
-      {/* Modal for renaming a chatbot */}
+    
       {isRenameModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
-            <h2 className="text-2xl font-bold mb-4 text-gray-900">Rename Chatbot</h2>
+            <h2 className="text-xl md:text-2xl font-bold mb-4 text-gray-900">Rename Chatbot</h2>
             <form onSubmit={handleRenameChatbot}>
               <input
                 type="text"
                 placeholder="Chatbot Name"
                 value={newChatbotName}
                 onChange={(e) => setNewChatbotName(e.target.value)}
-                className="w-full p-4 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                className="w-full p-3 md:p-4 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                 required
               />
               <textarea
                 placeholder="Chatbot Description"
                 value={newChatbotDescription}
                 onChange={(e) => setNewChatbotDescription(e.target.value)}
-                className="w-full p-4 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                className="w-full p-3 md:p-4 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                 required
               />
               <div className="flex justify-end">
@@ -214,12 +206,11 @@ const Dashboard = () => {
           </div>
         </div>
       )}
-
-      {/* Modal for confirming deletion */}
+    
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
-            <h2 className="text-2xl font-bold mb-4 text-gray-900">Confirm Deletion</h2>
+            <h2 className="text-xl md:text-2xl font-bold mb-4 text-gray-900">Confirm Deletion</h2>
             <p className="mb-4">Are you sure you want to delete the chatbot <strong>{chatbotToDelete?.name}</strong>? This action cannot be undone.</p>
             <div className="flex justify-end">
               <button
@@ -239,6 +230,8 @@ const Dashboard = () => {
         </div>
       )}
     </div>
+    
+
   );
 };
 

@@ -1,25 +1,27 @@
 const supabase = require('../config/db');
 
-// Helper function to fetch the user_id based on firebase_uid
-const getUserIdFromFirebaseUid = async (firebaseUid) => {
-  const { data: user, error } = await supabase
-    .from('users')
+// Helper function to fetch chatbot_id based on data_widget_id
+const getChatbotIdFromDataWidgetId = async (dataWidgetId) => {
+  console.log("Fetching chatbot for dataWidgetId: ", dataWidgetId);
+
+  const { data: chatbot, error } = await supabase
+    .from('chatbots')
     .select('id')
-    .eq('firebase_uid', firebaseUid)
+    .eq('data_widget_id', dataWidgetId)
     .single();
 
-  if (error || !user) {
-    throw new Error('User not found.');
+  if (error || !chatbot) {
+    throw new Error('Chatbot not found.');
   }
 
-  return user.id;
+  return chatbot.id;
 };
 
-// Upload Q&A Pair
+
 exports.uploadQAPair = async (req, res) => {
-  const { uid } = req.user;
+  const { uid } = req.user; // assuming user is authenticated
   const {
-    chatbotId,
+    chatbotId, // this is the data_widget_id
     type,
     url,
     title,
@@ -39,10 +41,11 @@ exports.uploadQAPair = async (req, res) => {
   } = req.body;
 
   try {
-    const userId = await getUserIdFromFirebaseUid(uid); // Ensure user exists
+    // Fetch the chatbot ID using data_widget_id
+    const chatbot_id = await getChatbotIdFromDataWidgetId(chatbotId);
 
     let newEntry = {
-      chatbot_id: chatbotId,
+      chatbot_id, // This is the ID from the chatbot table
       type,
       status,
       status_message,
@@ -52,6 +55,7 @@ exports.uploadQAPair = async (req, res) => {
       created_at: new Date().toISOString(),
     };
 
+    // Handle the specific fields based on the type
     switch (type) {
       case 'link':
         newEntry = { ...newEntry, url, title };
@@ -76,6 +80,7 @@ exports.uploadQAPair = async (req, res) => {
         return res.status(400).json({ error: 'Invalid type specified' });
     }
 
+    // Insert the new Q&A pair
     const { data, error } = await supabase.from('qa_pairs').insert([newEntry]);
 
     if (error) throw error;
@@ -85,27 +90,27 @@ exports.uploadQAPair = async (req, res) => {
   }
 };
 
-// Get Q&A Pairs
-exports.getQAPairs = async (req, res) => {
-  let { chatbotId } = req.query;
 
-  console.log("Received chatbotId: ", chatbotId);
+exports.getQAPairs = async (req, res) => {
+  const { chatbotId } = req.query; 
 
   if (!chatbotId) {
     return res.status(400).json({ error: 'Missing chatbotId parameter' });
   }
 
-  // Convert chatbotId to an integer
-  chatbotId = parseInt(chatbotId, 10);
-
-  if (isNaN(chatbotId)) {
-    return res.status(400).json({ error: 'Invalid chatbotId' });
-  }
-
   try {
-    const { data, error } = await supabase.from('qa_pairs').select('*').eq('chatbot_id', chatbotId);
+    // Fetch chatbot_id using data_widget_id
+    const chatbot_id = await getChatbotIdFromDataWidgetId(chatbotId);
+
+    // Fetch Q&A pairs based on the chatbot_id
+    const { data, error } = await supabase
+      .from('qa_pairs')
+      .select('*')
+      .eq('chatbot_id', chatbot_id);
+
     if (error) throw error;
 
+    // Structure the data
     const structuredData = {
       link: { total: 0, items: [] },
       text: { total: 0, items: [] },
@@ -125,7 +130,6 @@ exports.getQAPairs = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
-
 
 // Update Q&A Pair
 exports.updateQAPair = async (req, res) => {

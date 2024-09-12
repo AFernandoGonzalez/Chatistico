@@ -1,16 +1,15 @@
 import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faChartBar, faUser, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faChartBar, faUser, faSignOutAlt, faThLarge } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
 import { AuthContext } from '../context/AuthContext';
 
 const Sidebar = () => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const { logout } = useContext(AuthContext); // Get the logout function from AuthContext
-  const navigate = useNavigate(); // Use navigate for redirection
+  const { logout } = useContext(AuthContext);
+  const navigate = useNavigate(); 
 
-  // Handle logout and redirect to login page
   const handleLogout = async () => {
     await logout();
     navigate('/login');
@@ -18,37 +17,31 @@ const Sidebar = () => {
 
   return (
     <motion.div
-      onMouseLeave={() => setIsExpanded(false)}
+      // onMouseLeave={() => setIsExpanded(false)}
       className={`fixed top-0 left-0 h-full bg-primary flex flex-col items-center z-10 transition-all duration-300`}
       initial={{ width: '4rem' }}
       animate={{ width: isExpanded ? '16rem' : '4rem' }}
       transition={{ duration: 0.2 }}
     >
-      {/* Sidebar Header (for larger screens) */}
+      {/* Sidebar Header */}
       <div className="p-4 flex justify-center items-center">
-        <motion.button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="bg-primary-dark p-2 text-white rounded-full shadow-lg hover:bg-primary-light transition"
-        >
-          <FontAwesomeIcon icon={isExpanded ? faThLarge : faPlus} />
-        </motion.button>
+        <span>Logo</span>
       </div>
 
-      {/* Toggle and Menu Items */}
+      {/* Navigation Items */}
       <motion.div className="flex flex-col h-full w-full">
-        {/* Navigation Items */}
-        <nav className="flex-1 mt-6 w-full space-y-4 items-start">
+        <nav className="flex-1 mt-6 w-full space-y-4 flex flex-col items-center">
           <NavItem icon={faChartBar} label="Dashboard" isExpanded={isExpanded} to="/dashboard" />
           <NavItem icon={faUser} label="Profile" isExpanded={isExpanded} to="/dashboard/profile" />
         </nav>
 
-        {/* Logout Button pushed to the bottom */}
+        {/* Logout Button */}
         <div className="mt-auto w-full">
           <button
             onClick={handleLogout}
-            className="w-full p-3 text-white flex items-center hover:bg-primary-dark transition-colors duration-300"
+            className="w-full p-3 text-white flex items-center justify-center hover:bg-primary-dark transition-colors duration-300"
           >
-            <FontAwesomeIcon icon={faSignOutAlt} className="mr-3" />
+            <FontAwesomeIcon icon={faSignOutAlt} className="" />
             <motion.span
               className="text-white"
               initial={{ opacity: 0, width: 0 }}
@@ -62,17 +55,16 @@ const Sidebar = () => {
         </div>
       </motion.div>
 
-      {/* Sidebar Toggle Button (for small screens) */}
-      <div className="fixed bottom-12 left-4 lg:hidden">
+      {/* Sidebar Toggle Button */}
+      {/* <div className="fixed bottom-12 left-4 lg:hidden">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="bg-primary-dark p-2 text-white rounded-full shadow-lg hover:bg-primary-light transition"
         >
           <FontAwesomeIcon icon={isExpanded ? faThLarge : faPlus} />
         </button>
-      </div>
+      </div> */}
     </motion.div>
-
   );
 };
 
@@ -80,9 +72,9 @@ const NavItem = ({ icon, label, isExpanded, to }) => {
   return (
     <Link
       to={to}
-      className="w-full p-3 text-white flex items-center hover:bg-blue-700 transition-colors duration-300"
+      className="w-full p-3 text-white flex items-center justify-center hover:bg-blue-700 transition-colors duration-300"
     >
-      <FontAwesomeIcon icon={icon} className="mr-3" />
+      <FontAwesomeIcon icon={icon} className="" />
       <motion.span
         className="text-white"
         initial={{ opacity: 0, width: 0 }}

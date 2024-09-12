@@ -1,20 +1,18 @@
-// src/pages/Profile.js
-
 import React, { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { updateProfile } from '../services/api';
 
 const Profile = () => {
   const { user } = useContext(AuthContext);
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [notifications, setNotifications] = useState(true);
+  const [username, setUsername] = useState(user?.username || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [notifications, setNotifications] = useState(user?.notifications ?? true);
 
   useEffect(() => {
     if (user) {
-      setUsername(user.username);
-      setEmail(user.email);
-      setNotifications(user.notifications || true);
+      setUsername(user.username || '');
+      setEmail(user.email || '');
+      setNotifications(user.notifications ?? true);
     }
   }, [user]);
 
@@ -30,13 +28,14 @@ const Profile = () => {
 
   return (
     <div className="bg-background min-h-screen h-full py-8">
-      <div className="container mx-auto max-w-4xl p-6  ">
+      <div className="container mx-auto max-w-4xl p-6">
         <h1 className="text-3xl font-bold text-primary mb-8">Account Settings</h1>
 
         <div className="space-y-6">
           <div>
             <label className="block text-gray-600 font-semibold mb-2">Username</label>
             <input
+              disabled
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -48,6 +47,7 @@ const Profile = () => {
           <div>
             <label className="block text-gray-600 font-semibold mb-2">Email</label>
             <input
+              disabled
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}

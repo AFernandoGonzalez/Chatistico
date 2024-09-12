@@ -29,6 +29,19 @@ export const sendMessage = async (chatId, text, role_id) => {
   return handleErrors(response);
 };
 
+export const getAllChatsByChatbot = async (chatbotId) => {
+  const token = await getAuthToken();
+  const response = await fetch(`${API_BASE_URL}/chat/all?chatbotId=${chatbotId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return handleErrors(response);
+};
+
+
 export const getChatHistory = async (userId, chatbotId) => {
   const token = await getAuthToken();
   const response = await fetch(`${API_BASE_URL}/chat/history?userId=${userId}&chatbotId=${chatbotId}`, {
