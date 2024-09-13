@@ -1,26 +1,30 @@
+const OpenAI = require('openai');
 
+// Initialize the OpenAI API with your API key
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
-async function getAIResponse(userQuery) {
+async function getAIResponse(userQuery, knowledgeContext) {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",  // Use the appropriate model like "gpt-4" if needed
+      messages: [
+        { role: "system", content: `You are a helpful assistant with knowledge based on the following:\n${knowledgeContext}` },
+        { role: "user", content: userQuery }
+      ],
+      max_tokens: 150,  // Adjust token limit as needed
+      temperature: 0.7,
+    });
+
+    const aiResponse = response.choices[0].message.content.trim();
+    console.log("aiResponse: ",aiResponse);
     
-    const randomResponses = [
-        "I'm here to help!",
-        "Can you please provide more details?",
-        "Thank you for reaching out.",
-        "I'm not sure I understand. Could you clarify?",
-        "That's interesting! Tell me more.",
-        "Let me check that for you.",
-        "I'm sorry, I don't have the information you're looking for.",
-        "Is there anything else I can assist you with?",
-        "Great! How can I assist you further?",
-        "Let's solve this together!"
-    ];
-
-    
-    const randomIndex = Math.floor(Math.random() * randomResponses.length);
-    const randomResponse = randomResponses[randomIndex];
-
-    
-    return randomResponse;
+    return aiResponse;
+  } catch (error) {
+    console.error('Error generating AI response:', error.message);
+    return "Sorry, I couldn't process your request at the moment.";
+  }
 }
 
 module.exports = { getAIResponse };
