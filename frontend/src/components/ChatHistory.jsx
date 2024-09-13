@@ -13,23 +13,15 @@ const ChatHistory = () => {
   const chatEndRef = useRef(null);
   const { user } = useContext(AuthContext);
 
-  console.log("user: ", user);
-  console.log("chatbotid", chatbotId);
-
   useEffect(() => {
     const fetchAllChats = async () => {
       if (chatbotId) {
         try {
           const response = await getAllChatsByChatbot(chatbotId);
-
-          // Sort chats by the newest ones first (based on last_timestamp)
           const sortedChats = response.chats.sort(
             (a, b) => new Date(b.last_timestamp) - new Date(a.last_timestamp)
           );
-
-          setChats(sortedChats); // Set the sorted chats state
-
-          // Set default chat to be the first one (newest)
+          setChats(sortedChats);
           if (sortedChats && sortedChats.length > 0) {
             setSelectedChat(sortedChats[0]);
             setChatLogs(sortedChats[0].messages);
@@ -48,7 +40,6 @@ const ChatHistory = () => {
       chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [chatLogs]);
-  // Handler for selecting a chat
   const handleChatSelect = (chat) => {
     setSelectedChat(chat);
     setChatLogs(chat.messages);
@@ -56,7 +47,7 @@ const ChatHistory = () => {
 
   return (
     <div className="flex h-screen bg-background">
-      <div className="min-w-10 bg-white border-r p-2 overflow-y-auto">
+      <div className="min-w-[200px] md:max-w-[400px] bg-white border-r p-2 overflow-y-auto">
         <div className="flex justify-between items-center my-6">
           <h2 className="text-lg font-semibold text-gray-900">Conversations</h2>
         </div>

@@ -17,25 +17,22 @@ const Sidebar = () => {
 
   return (
     <motion.div
-      // onMouseLeave={() => setIsExpanded(false)}
+      
       className={`fixed top-0 left-0 h-full bg-primary flex flex-col items-center z-10 transition-all duration-300`}
       initial={{ width: '4rem' }}
       animate={{ width: isExpanded ? '16rem' : '4rem' }}
       transition={{ duration: 0.2 }}
     >
-      {/* Sidebar Header */}
       <div className="p-4 flex justify-center items-center">
         <span>Logo</span>
       </div>
 
-      {/* Navigation Items */}
       <motion.div className="flex flex-col h-full w-full">
         <nav className="flex-1 mt-6 w-full space-y-4 flex flex-col items-center">
           <NavItem icon={faChartBar} label="Dashboard" isExpanded={isExpanded} to="/dashboard" />
           <NavItem icon={faUser} label="Profile" isExpanded={isExpanded} to="/dashboard/profile" />
         </nav>
 
-        {/* Logout Button */}
         <div className="mt-auto w-full">
           <button
             onClick={handleLogout}

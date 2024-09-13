@@ -20,19 +20,17 @@ const KnowledgeBase = () => {
   const [selectedType, setSelectedType] = useState('text');
   const [editingEntry, setEditingEntry] = useState(null);
   const modalRef = useRef(null);
-
-  console.log("chatbotId..", chatbotId);
   
 
   useEffect(() => {
     if (user && chatbotId) {
-      fetchQAPairs(chatbotId); // Fetch data with the correct chatbotId
+      fetchQAPairs(chatbotId); 
     }
   }, [user, chatbotId]);
 
   const fetchQAPairs = async (chatbotId) => {
     try {
-      const data = await getQAPairs(chatbotId); // Now passing chatbotId instead of user.id
+      const data = await getQAPairs(chatbotId); 
       setDataSources(data);
     } catch (error) {
       console.error('Error fetching Q&A pairs:', error);
@@ -47,7 +45,7 @@ const KnowledgeBase = () => {
 
   const handleAddEntry = async (newEntry) => {
     try {
-      await uploadQAPair(chatbotId, selectedType, newEntry); // Use chatbotId here
+      await uploadQAPair(chatbotId, selectedType, newEntry); 
       fetchQAPairs(chatbotId);
       setShowAddModal(false);
     } catch (error) {

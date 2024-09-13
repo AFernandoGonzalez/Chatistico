@@ -1,8 +1,6 @@
 const supabase = require('../config/db');
 
-// Helper function to fetch chatbot_id based on data_widget_id
 const getChatbotIdFromDataWidgetId = async (dataWidgetId) => {
-  console.log("Fetching chatbot for dataWidgetId: ", dataWidgetId);
 
   const { data: chatbot, error } = await supabase
     .from('chatbots')
@@ -19,9 +17,10 @@ const getChatbotIdFromDataWidgetId = async (dataWidgetId) => {
 
 
 exports.uploadQAPair = async (req, res) => {
-  const { uid } = req.user; // assuming user is authenticated
+  const { uid } = req.user;
+
   const {
-    chatbotId, // this is the data_widget_id
+    chatbotId, 
     type,
     url,
     title,
@@ -41,11 +40,10 @@ exports.uploadQAPair = async (req, res) => {
   } = req.body;
 
   try {
-    // Fetch the chatbot ID using data_widget_id
     const chatbot_id = await getChatbotIdFromDataWidgetId(chatbotId);
 
     let newEntry = {
-      chatbot_id, // This is the ID from the chatbot table
+      chatbot_id, 
       type,
       status,
       status_message,
@@ -55,7 +53,6 @@ exports.uploadQAPair = async (req, res) => {
       created_at: new Date().toISOString(),
     };
 
-    // Handle the specific fields based on the type
     switch (type) {
       case 'link':
         newEntry = { ...newEntry, url, title };
@@ -80,7 +77,6 @@ exports.uploadQAPair = async (req, res) => {
         return res.status(400).json({ error: 'Invalid type specified' });
     }
 
-    // Insert the new Q&A pair
     const { data, error } = await supabase.from('qa_pairs').insert([newEntry]);
 
     if (error) throw error;
@@ -99,10 +95,8 @@ exports.getQAPairs = async (req, res) => {
   }
 
   try {
-    // Fetch chatbot_id using data_widget_id
     const chatbot_id = await getChatbotIdFromDataWidgetId(chatbotId);
 
-    // Fetch Q&A pairs based on the chatbot_id
     const { data, error } = await supabase
       .from('qa_pairs')
       .select('*')
@@ -110,7 +104,6 @@ exports.getQAPairs = async (req, res) => {
 
     if (error) throw error;
 
-    // Structure the data
     const structuredData = {
       link: { total: 0, items: [] },
       text: { total: 0, items: [] },
@@ -131,7 +124,6 @@ exports.getQAPairs = async (req, res) => {
   }
 };
 
-// Update Q&A Pair
 exports.updateQAPair = async (req, res) => {
   const { id } = req.params;
   const {
@@ -199,7 +191,6 @@ exports.updateQAPair = async (req, res) => {
   }
 };
 
-// Delete Q&A Pair
 exports.deleteQAPair = async (req, res) => {
   const { id } = req.params;
 

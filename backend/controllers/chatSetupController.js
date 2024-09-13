@@ -1,7 +1,6 @@
 const { getChatHistory, sendMessage, newMessage } = require('./chatController');
 const { getConfiguration } = require('./configController');
 
-// Handle GET requests (for fetching data)
 exports.handleGetChatActions = async (req, res) => {
     const { action, chatbotId, sessionUserId } = req.query;
 
@@ -31,7 +30,6 @@ exports.handleGetChatActions = async (req, res) => {
     }
 };
 
-// Handle POST requests (for creating or modifying data)
 exports.handlePostChatActions = async (req, res) => {
     const { action, chatbotId, sessionUserId, text, role_id, chatId } = req.body;
 

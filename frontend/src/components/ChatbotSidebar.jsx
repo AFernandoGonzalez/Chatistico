@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 const ChatbotSidebar = () => {
   const { id } = useParams();
   const [isExpanded, setIsExpanded] = useState(false);
-  const location = useLocation(); // Get current location
+  const location = useLocation(); 
 
   return (
     <motion.div

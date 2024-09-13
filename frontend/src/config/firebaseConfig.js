@@ -1,4 +1,4 @@
-// src/firebaseConfig.js
+
 
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
@@ -12,10 +12,10 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_REACT_APP_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase
+
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firebase Auth
+
 const auth = getAuth(app);
 
 export { auth };

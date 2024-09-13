@@ -1,7 +1,6 @@
 const supabase = require('../config/db');
 const { getAIResponse } = require('../services/openaiService');
 
-// Get all chats for a specific chatbot (irrespective of the user)
 exports.getAllChatsByChatbot = async (req, res) => {
   try {
     const { chatbotId } = req.query;
@@ -10,7 +9,6 @@ exports.getAllChatsByChatbot = async (req, res) => {
       return res.status(400).json({ error: 'Chatbot ID is required.' });
     }
 
-    // Fetch the chatbot's actual ID from the chatbots table using the data_widget_id (UUID)
     const { data: chatbot, error: chatbotError } = await supabase
       .from('chatbots')
       .select('id')
@@ -21,14 +19,13 @@ exports.getAllChatsByChatbot = async (req, res) => {
       return res.status(400).json({ error: 'Chatbot not found.' });
     }
 
-    // Fetch all chats associated with this chatbot
     const { data: chats, error: chatError } = await supabase
       .from('chats')
       .select(`
         id, last_timestamp, chatbot_version, customer_id, important, closed,
         messages (*)
       `)
-      .eq('chatbot_id', chatbot.id); // Fetch all chats by chatbot_id
+      .eq('chatbot_id', chatbot.id);
 
     if (chatError) {
       return res.status(500).json({ error: 'Failed to fetch chats.' });
@@ -45,13 +42,10 @@ exports.getChatHistory = async (req, res) => {
   try {
     const { chatbotId, sessionUserId } = req.query;
 
-    console.log("getChatHistory ", { chatbotId, sessionUserId });
-
     if (!chatbotId || !sessionUserId) {
       return res.status(400).json({ error: 'Chatbot ID and Session User ID are required.' });
     }
 
-    // Fetch the chatbot's actual ID from the chatbots table using the data_widget_id (UUID)
     const { data: chatbot, error: chatbotError } = await supabase
       .from('chatbots')
       .select('id')
@@ -62,14 +56,13 @@ exports.getChatHistory = async (req, res) => {
       return res.status(400).json({ error: 'Chatbot not found' });
     }
 
-    // Fetch all chats associated with the user and chatbot
     const { data: chats, error: chatError } = await supabase
       .from('chats')
       .select(`
         id, last_timestamp, chatbot_version, customer_id, important, closed,
         messages (*)
       `)
-      .eq('chatbot_id', chatbot.id)  // Use the chatbot's integer ID here
+      .eq('chatbot_id', chatbot.id)
       .eq('session_user_id', sessionUserId);
 
     if (chatError) {
@@ -91,7 +84,6 @@ exports.newMessage = async (req, res) => {
   }
 
   try {
-    // Fetch the chatbot's actual ID from the chatbots table using the data_widget_id (UUID)
     const { data: chatbot, error: chatbotError } = await supabase
       .from('chatbots')
       .select('id')
@@ -102,7 +94,6 @@ exports.newMessage = async (req, res) => {
       return res.status(400).json({ error: 'Chatbot not found' });
     }
 
-    // Insert a new chat into the chats table using the integer chatbot_id
     const { data: newChat, error: newChatError } = await supabase
       .from('chats')
       .insert([{ chatbot_id: chatbot.id, session_user_id: sessionUserId, last_timestamp: new Date().toISOString() }])
@@ -130,7 +121,6 @@ exports.sendMessage = async (req, res) => {
   }
 
   try {
-    // Check if the chatId exists in the chats table
     const { data: chatExists, error: chatError } = await supabase
       .from('chats')
       .select('id')
@@ -141,7 +131,6 @@ exports.sendMessage = async (req, res) => {
       return res.status(400).json({ error: 'Invalid chat ID.' });
     }
 
-    // Insert the user message into the messages table
     const { data: userMessage, error: userMessageError } = await supabase
       .from('messages')
       .insert([{ chat_id: chatId, text, role_id, session_user_id: sessionUserId, timestamp: new Date().toISOString() }])
@@ -153,10 +142,8 @@ exports.sendMessage = async (req, res) => {
       return res.status(500).json({ error: 'Failed to send message.' });
     }
 
-    // Generate a random AI response
     const aiResponse = await getAIResponse(text);
 
-    // Insert the AI response into the messages table
     const { data: aiMessage, error: aiMessageError } = await supabase
       .from('messages')
       .insert([{ chat_id: chatId, text: aiResponse, role_id: 1, session_user_id: sessionUserId, timestamp: new Date().toISOString() }])
@@ -168,7 +155,6 @@ exports.sendMessage = async (req, res) => {
       return res.status(500).json({ error: 'Failed to save AI response.' });
     }
 
-    // Respond with the AI message
     res.status(201).json({ userMessage, aiMessage });
   } catch (error) {
     console.error('Failed to process message:', error);

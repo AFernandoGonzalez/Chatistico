@@ -29,7 +29,7 @@ const Profile = () => {
   return (
     <div className="bg-background min-h-screen h-full py-8">
       <div className="container mx-auto max-w-4xl p-6">
-        <h1 className="text-3xl font-bold text-primary mb-8">Account Settings</h1>
+        <h1 className="text-xl font-bold text-primary mb-8">Account Settings</h1>
 
         <div className="space-y-6">
           <div>
@@ -71,7 +71,7 @@ const Profile = () => {
 
         <button
           onClick={handleSaveSettings}
-          className="mt-8 w-full bg-primary text-white py-3 rounded-full font-semibold shadow-lg hover:bg-primary-dark transition-all"
+          className="mt-8 w-full bg-primary text-white py-3 rounded-full font-semibold shadow-lg md:w-[300px] hover:bg-primary-dark transition-all"
         >
           Save Settings
         </button>

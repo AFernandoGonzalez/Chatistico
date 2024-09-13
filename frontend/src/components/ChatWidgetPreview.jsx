@@ -97,7 +97,6 @@ const ChatWidgetPreview = ({
         </div>
       )}
 
-      {/* Toggle Button for Chat */}
       <button
         style={{
           backgroundColor: iconColor,
@@ -105,14 +104,13 @@ const ChatWidgetPreview = ({
           width: `${chatIconSize}px`,
           height: `${chatIconSize}px`,
           borderRadius: chatIconCircular ? '50%' : '8px',
-          backgroundImage: `url('${chatIconImage}')`, // Use chat icon image
+          backgroundImage: `url('${chatIconImage}')`, 
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
         onClick={() => setIsChatOpen(!isChatOpen)}
         className="fixed bottom-[10px] right-0 p-3 rounded-full shadow-lg"
       >
-        {/* Only show icon if no image is set */}
         {!chatIconImage && <FontAwesomeIcon icon={isChatOpen ? faTimes : faBars} />}
       </button>
     </div>

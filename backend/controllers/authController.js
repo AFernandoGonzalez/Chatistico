@@ -1,7 +1,6 @@
-const { admin } = require('../config/firebase'); // Use the config you've set up
-const supabase = require('../config/db'); // Assuming you're using Supabase for your DB connection
+const { admin } = require('../config/firebase'); 
+const supabase = require('../config/db'); 
 
-// Signup Function
 exports.signup = async (req, res) => {
   const { firebaseUid, email } = req.body;
 
@@ -27,23 +26,20 @@ exports.signup = async (req, res) => {
   }
 };
 
-// Login Function
-exports.login = async (req, res) => {
-  const { email, password } = req.body;
-  try {
 
-    res.status(200).json({ message: 'Logged in successfully' });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
 
-// Logout Function
-exports.logout = async (req, res) => {
-  try {
-    // Since logout happens client-side (clearing tokens, etc.), you don't need Firebase Admin for this
-    res.status(200).json({ message: 'Logged out successfully' });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

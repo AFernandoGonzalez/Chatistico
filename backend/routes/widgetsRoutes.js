@@ -1,16 +1,14 @@
-// widgetsRoutes.js
+
 
 const express = require('express');
 const router = express.Router();
-const supabase = require('../config/db'); // Make sure you have Supabase or any other DB connection set up here
+const supabase = require('../config/db'); 
 
-// Controller function for serving the widget
+
 const serveWidget = async (req, res) => {
     const { customerId } = req.params;
-    console.log("customerId", customerId);
 
     try {
-        // Fetch the configuration for the given customerId
         const { data: config, error } = await supabase
             .from('chatbot_configurations')
             .select('*')
@@ -21,7 +19,7 @@ const serveWidget = async (req, res) => {
             return res.status(404).send('Configuration not found');
         }
 
-        // Generate HTML with the configuration
+        
         const widgetHtml = `
         <!DOCTYPE html>
         <html lang="en">
@@ -34,7 +32,7 @@ const serveWidget = async (req, res) => {
                 body {
                     margin: 0;
                     padding: 0;
-                    // background-color: ${config.primary_color};
+                    
                     color: ${config.text_color};
                     font-family: Arial, sans-serif;
                 }
@@ -134,17 +132,17 @@ const serveWidget = async (req, res) => {
                     const input = document.getElementById('chatInput');
                     const message = input.value;
                     if (message) {
-                        // Append the user message
+                        
                         appendMessage(message, 'user');
-                        // Send message to the server
-                        fetch('http://localhost:8000/api/chat/message', {
+                        
+                        fetch('http:
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ chatbotId: '${customerId}', userId: 'YOUR_USER_ID', message })
                         })
                         .then(response => response.json())
                         .then(data => {
-                            // Append the bot reply
+                            
                             appendMessage(data.reply, 'bot');
                         })
                         .catch(error => console.error('Error sending message:', error));
@@ -160,8 +158,8 @@ const serveWidget = async (req, res) => {
                     chatContent.appendChild(messageDiv);
                 };
 
-                // Fetch initial messages when the widget is loaded
-                fetch('http://localhost:8000/api/chat/history?userId=1&chatbotId=${customerId}')
+                
+                fetch('http:
                     .then(response => response.json())
                     .then(data => {
                         const messages = data.chats.flatMap(chat => chat.messages);
@@ -179,7 +177,7 @@ const serveWidget = async (req, res) => {
     }
 };
 
-// Define the route
+
 router.get('/:customerId', serveWidget);
 
 module.exports = router;

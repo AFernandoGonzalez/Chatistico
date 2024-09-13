@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ChatWidgetPreview from './ChatWidgetPreview';
 
 const ChatbotConfig = ({ selectedChatbot, onBack }) => {
-  const [themeColor, setThemeColor] = useState('#000'); // Default color
+  const [themeColor, setThemeColor] = useState('#000'); 
 
   return (
     <div className="flex-grow p-4">

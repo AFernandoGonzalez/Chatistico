@@ -10,7 +10,7 @@
 
     const scriptTag = document.currentScript;
     const chatbotId = scriptTag.getAttribute('data-widget-id');
-    const backendUrl = 'http://localhost:8000/api/public/embed/chatbot/configure';
+    const backendUrl = 'http:
 
     function toggleChat() {
         isChatOpen = !isChatOpen;
@@ -46,22 +46,20 @@
     function loadFontAwesome() {
         const link = document.createElement('link');
         link.rel = 'stylesheet';
-        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css';
+        link.href = 'https:
         document.head.appendChild(link);
     }
 
     function loadTailwind() {
         const link = document.createElement('link');
         link.rel = 'stylesheet';
-        link.href = 'https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css';
+        link.href = 'https:
         document.head.appendChild(link);
     }
 
     function loadChatbot(configuration) {
         config = configuration.data;
-        console.log("loadChatbot config", config);
-        
-        // Create chatbot container
+
         const chatbotContainer = document.createElement('div');
         chatbotContainer.id = 'chatbot-container';
         chatbotContainer.className = 'chat-widget-preview fixed bottom-[50px] right-0 mb-5 shadow-lg overflow-hidden';
@@ -75,7 +73,6 @@
         chatbotContainer.style.zIndex = '10';
         document.body.appendChild(chatbotContainer);
 
-        // Adjust size for responsiveness
         function adjustChatbotSize() {
             if (window.innerWidth <= 640) {
                 chatbotContainer.style.maxWidth = '100%';
@@ -103,7 +100,6 @@
         adjustChatbotSize();
         window.addEventListener('resize', adjustChatbotSize);
 
-        // Chat Header
         const chatHeader = document.createElement('div');
         chatHeader.className = 'flex items-center justify-between p-3';
         chatHeader.style.backgroundColor = config.primary_color;
@@ -127,21 +123,21 @@
         chatTitle.textContent = config.chatbot_name || 'Chatbot';
         chatHeader.appendChild(chatTitle);
 
-        // Close button in chat header
+        
         const closeButton = document.createElement('button');
         closeButton.style.color = config.text_color;
         closeButton.innerHTML = '<i class="fas fa-times"></i>';
         closeButton.onclick = toggleChat;
         chatHeader.appendChild(closeButton);
 
-        // Chat Content
+        
         const chatContent = document.createElement('div');
         chatContent.id = 'chat-content';
         chatContent.className = 'chat-content p-4 flex-1 overflow-y-auto bg-gray-50';
         chatContent.style.height = '82%';
         chatbotContainer.appendChild(chatContent);
 
-        // Chat Input
+        
         const chatInputContainer = document.createElement('div');
         chatInputContainer.className = 'chat-input border-t p-3 bg-white flex items-center';
         chatbotContainer.appendChild(chatInputContainer);
@@ -153,17 +149,17 @@
         inputField.className = 'w-full p-3 rounded-md focus:outline-none text-black';
         chatInputContainer.appendChild(inputField);
 
-        // Send button with paper plane icon
+        
         const sendButton = document.createElement('button');
         sendButton.className = 'ml-2 p-2';
         sendButton.innerHTML = `<i class="fas fa-paper-plane" style="color: ${config.icon_color};"></i>`;
         sendButton.onclick = sendMessage;
         chatInputContainer.appendChild(sendButton);
 
-        // Append the chatbot container to the body
+        
         document.body.appendChild(chatbotContainer);
 
-        // Create toggle button for chat
+        
         toggleButton = document.createElement('button');
         toggleButton.className = 'fixed bottom-[10px] right-0 p-3 rounded-full shadow-lg';
         toggleButton.style.backgroundColor = config.icon_color;
@@ -176,7 +172,7 @@
         toggleButton.style.backgroundPosition = 'center';
         toggleButton.onclick = toggleChat;
 
-        // Function to handle visibility of the toggle button
+        
         function adjustToggleButtonVisibility() {
             if (window.innerWidth <= 640) {
                 if (isChatOpen) {
@@ -193,21 +189,21 @@
 
         const toggleButtonIcon = document.createElement('i');
         toggleButtonIcon.id = 'toggle-button-icon';
-        toggleButtonIcon.className = 'fas fa-bars'; // Default icon
+        toggleButtonIcon.className = 'fas fa-bars'; 
         toggleButton.appendChild(toggleButtonIcon);
 
-        // Only show icon if no image is set
+        
         if (!config.chat_icon_image) {
             toggleButton.appendChild(toggleButtonIcon);
         }
 
-        // Append the toggle button to the body
+        
         document.body.appendChild(toggleButton);
 
-        // Initial call to adjust toggle button visibility
+        
         adjustToggleButtonVisibility();
 
-        // Auto open chat if configured to do so
+        
         if (config.auto_open_behavior === 'auto') {
             setTimeout(() => {
                 toggleChat();
@@ -215,7 +211,7 @@
         }
     }
 
-    // Fetch chat data using GET
+    
     function performGetChatAction(action) {
         const url = `${backendUrl}?action=${action}&chatbotId=${chatbotId}&sessionUserId=${sessionUserId}`;
 
@@ -233,7 +229,7 @@
                             chatId = data.chats[0].id;
                             displayMessages(messages);
                         } else {
-                            // If no existing chat, create a new one
+                            
                             performPostChatAction('createNewChat');
                         }
                     } else if (action === 'getConfiguration') {
@@ -244,7 +240,7 @@
             .catch(error => console.error('Error:', error));
     }
 
-    // Perform POST actions for chat
+    
     function performPostChatAction(action, text = null) {
         const payload = {
             action: action,
@@ -269,7 +265,7 @@
                     throw new Error(data.error);
                 }
                 if (action === 'createNewChat') {
-                    chatId = data.chatId;  // Update chatId after creating a new chat
+                    chatId = data.chatId;  
                     messages = [];
                     displayMessages(messages);
                 }
@@ -280,20 +276,20 @@
                 throw error;
             });
     }
-    // Display fetched chat messages
+    
     function displayMessages(messages) {
         const chatContent = document.getElementById('chat-content');
-        chatContent.innerHTML = ''; // Clear existing content
+        chatContent.innerHTML = ''; 
 
-        // Wrapper for the chat messages
+        
         const chatMessageWrapper = document.createElement('div');
-        chatMessageWrapper.className = 'chat-message space-y-4';  // Space between messages
+        chatMessageWrapper.className = 'chat-message space-y-4';  
 
         messages.forEach(message => {
             const messageWrapper = document.createElement('div');
 
-            if (message.role_id === 2) {  // Assuming role_id 2 is for the user/customer
-                messageWrapper.className = 'flex items-center justify-end space-x-3';  // Align message to the right
+            if (message.role_id === 2) {  
+                messageWrapper.className = 'flex items-center justify-end space-x-3';  
                 const userMessage = document.createElement('div');
                 userMessage.style.cssText = `
                     padding: 10px 15px;
@@ -323,7 +319,7 @@
         chatContent.scrollTop = chatContent.scrollHeight;
     }
 
-    // Send message
+    
     function sendMessage() {
         const inputField = document.getElementById('chat-input-field');
         const text = inputField.value.trim();
@@ -341,7 +337,7 @@
         displayMessages(messages);
         inputField.value = '';
 
-        // Display typing indicator for the bot response
+        
         const typingIndicator = document.createElement('div');
         typingIndicator.className = 'typing-indicator';
         typingIndicator.style.cssText = 'padding: 10px; font-style: italic; color: gray;';
@@ -350,25 +346,25 @@
         chatContent.appendChild(typingIndicator);
         chatContent.scrollTop = chatContent.scrollHeight;
 
-        // Perform the POST request to send the message
+        
         performPostChatAction('sendMessage', text)
             .then((data) => {
-                // Remove typing indicator once the AI response is received
+                
                 typingIndicator.remove();
 
-                // Only render the AI response here to avoid duplicating the user's message
+                
                 if (data.aiMessage) {
-                    messages.push(data.aiMessage);  // Only push the bot's response
-                    displayMessages(messages);      // Re-render messages with AI response
+                    messages.push(data.aiMessage);  
+                    displayMessages(messages);      
                 }
             })
             .catch((error) => {
                 console.error('Error sending message:', error);
-                typingIndicator.remove();  // Remove typing indicator on error
+                typingIndicator.remove();  
             });
     }
 
-    // Generate or fetch user ID
+    
     function getOrCreateUserId() {
         let userId = localStorage.getItem('chat_user_id');
         if (!userId) {
@@ -378,7 +374,7 @@
         return userId;
     }
 
-    // Load resources
+    
     loadFontAwesome();
     loadTailwind();
 

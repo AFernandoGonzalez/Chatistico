@@ -1,5 +1,5 @@
 (() => {
-    // Step 1: Define Global Variables and Constants
+    
     let iframeElement = null;
     let customerId = null;
     const iframeId = "chatbot-widget-iframe";
@@ -27,9 +27,9 @@
         LOCAL_STORAGE_SESSION_ID: "local_storage_session_id"
     };
 
-    const API_BASE_URL = 'http://localhost:8000/api';
+    const API_BASE_URL = 'http:
 
-    // Step 2: Helper Functions
+    
     function getCookieName(baseName) {
         if (!baseName || baseName.trim().length === 0) return null;
         if (!customerId) customerId = getWidgetId();
@@ -144,7 +144,7 @@
         setCookie(chatSessionsCookie, btoa(sessionData), 30);
     }
 
-    // Step 3: Initialize Widget
+    
     function initializeWidget() {
         customerId = getWidgetId();
         widgetDisplayType = getDisplayType();
@@ -170,7 +170,7 @@
                 initializeAutoOpen(data.data);
                 toggleAttentionGrabber("show");
 
-                setupChatIcons(); // Setup open/close chat icons
+                setupChatIcons(); 
             }
         })
         .catch(error => {
@@ -178,11 +178,11 @@
         });
     }
 
-    // Step 4: Create and Setup Iframe
+    
     function createIframeWidget(options) {
         iframeElement = document.createElement("iframe");
         iframeElement.setAttribute("allow", "microphone");
-        iframeElement.src = `http://localhost:8000/widgets/${customerId}`;
+        iframeElement.src = `http:
         iframeElement.style.border = "none";
 
         if (widgetDisplayType === widgetStyles.fullscreen) {
@@ -218,11 +218,11 @@
     }
 
     function setupFloatingWidgetStyles(options) {
-        const position = options.position?.value || 'br'; // Default to 'br' if undefined
+        const position = options.position?.value || 'br'; 
         const posX = parseInt(options.position?.x) || 0;
         const posY = parseInt(options.position?.y) || 0;
-        const iconSize = options.chat_icon?.size || 50; // Default size if undefined
-        const interfaceWidth = options.chat_interface?.width || 350; // Default width if undefined
+        const iconSize = options.chat_icon?.size || 50; 
+        const interfaceWidth = options.chat_interface?.width || 350; 
         let maxHeight = window.innerHeight - (posY + iconSize + 20) - 50;
         maxHeight = maxHeight > 700 ? 700 : maxHeight;
 
@@ -258,7 +258,7 @@
         }
     }
 
-    // Step 5: Apply Styles
+    
     function applyResponsiveStyles() {
         if (widgetDisplayType === widgetStyles.floating) {
             const styles = `
@@ -293,14 +293,14 @@
         }
     }
 
-    // Step 6: Setup Chat Icons
+    
     function setupChatIcons() {
         if (!openChatButton) {
             openChatButton = document.createElement('img');
             openChatButton.id = 'open-chat-icon';
-            openChatButton.src = 'https://img.icons8.com/?size=100&id=82787&format=png&color=000000'; // Placeholder URL
-            openChatButton.style.width = '45px'; // Adjust size as needed
-            openChatButton.style.height = '45px'; // Adjust size as needed
+            openChatButton.src = 'https:
+            openChatButton.style.width = '45px'; 
+            openChatButton.style.height = '45px'; 
             openChatButton.style.cursor = 'pointer';
             openChatButton.style.position = 'fixed';
             openChatButton.style.bottom = '20px';
@@ -313,21 +313,21 @@
         if (!closeChatButton) {
             closeChatButton = document.createElement('img');
             closeChatButton.id = 'close-chat-icon';
-            closeChatButton.src = 'https://img.icons8.com/?size=100&id=46&format=png&color=000000'; // Placeholder URL
-            closeChatButton.style.width = '45px'; // Adjust size as needed
-            closeChatButton.style.height = '45px'; // Adjust size as needed
+            closeChatButton.src = 'https:
+            closeChatButton.style.width = '45px'; 
+            closeChatButton.style.height = '45px'; 
             closeChatButton.style.cursor = 'pointer';
             closeChatButton.style.position = 'fixed';
             closeChatButton.style.bottom = '20px';
             closeChatButton.style.right = '20px';
             closeChatButton.style.zIndex = `${zIndexHighest}`;
-            closeChatButton.style.display = 'none'; // Initially hidden
+            closeChatButton.style.display = 'none'; 
             document.body.appendChild(closeChatButton);
             closeChatButton.addEventListener('click', hideChatWidget);
         }
     }
 
-    // Step 7: Event Handlers
+    
     function showChatWidget() {
         if (!iframeElement) iframeElement = document.getElementById(iframeId);
         if (iframeElement) {
@@ -460,11 +460,11 @@
         localStorage.setItem(cookieNames.LAST_PAGEVIEW, currentTime);
     }
 
-    // Initialize page view and widget
+    
     initializePageView();
     initializeWidget();
 
-    // Event listener for messages from the iframe
+    
     window.addEventListener("message", (event) => {
         const eventData = event.data;
         if (eventData === "chat_minimized") {

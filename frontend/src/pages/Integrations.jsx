@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCopy, faGlobe, faCode, faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
-import { Tooltip } from 'react-tooltip';
+import { toast } from 'react-toastify';
 
 const Integrations = () => {
-    const { id: chatbotId } = useParams();  // Get the chatbotId (which is data_widget_id) from the URL
+    const { id: chatbotId } = useParams();
     const [selectedType, setSelectedType] = useState('Floating Chat');
     const apiBaseUrl = import.meta.env.VITE_EMBED_URL;
 
@@ -28,7 +28,7 @@ const Integrations = () => {
         const codeToCopy = displayTypes.find(type => type.type === selectedType).description;
         navigator.clipboard.writeText(codeToCopy)
             .then(() => {
-                alert('Code copied to clipboard!');
+                toast.success('Code copied to clipboard!');
             })
             .catch(err => {
                 console.error('Failed to copy text: ', err);
@@ -36,17 +36,15 @@ const Integrations = () => {
     };
 
     return (
-        <div className="p-8 bg-gray-100 shadow-md rounded-lg mx-auto flex items-center justify-center">
+        <div className="p-8 bg-gray-100 shadow-md rounded-lg mx-auto flex items justify-center">
             <div className="w-full max-w-3xl">
 
-                <h1 className="text-4xl font-bold mb-8 text-center text-gray-900">Integrate Chatbot with Your Website</h1>
-                <p className="mb-10 text-lg text-center text-gray-600">
+                <h1 className="text-xl font-bold mb-8 text- text-gray-900">Integrate Chatbot with Your Website</h1>
+                <p className="mb-10 text-lg  text-gray-600">
                     Follow the steps below to seamlessly integrate the chatbot into your website.
                     <FontAwesomeIcon icon={faQuestionCircle} className="ml-2 text-gray-400" data-tip="Select your display type, copy the code, and paste it into your website's HTML." />
-                    <Tooltip />
+                    
                 </p>
-
-                {/* Step 1 - Choose Your Display Type */}
                 <div className="mb-8">
                     <h2 className="text-2xl font-semibold mb-4 text-gray-800">1. Choose Your Display Type</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -58,14 +56,12 @@ const Integrations = () => {
                             >
                                 <div className="flex flex-col items-center">
                                     <FontAwesomeIcon icon={faGlobe} className="text-gray-600 mb-2 text-2xl" />
-                                    <p className="text-center text-lg font-medium text-gray-700">{type.type}</p>
+                                    <p className=" text-lg font-medium text-gray-700">{type.type}</p>
                                 </div>
                             </button>
                         ))}
                     </div>
                 </div>
-
-                {/* Step 2 - Copy Your Embed Code */}
                 <div className="mb-8">
                     <h2 className="text-2xl font-semibold mb-4 text-gray-800">2. Copy Your Embed Code</h2>
                     <div className="relative bg-gray-100 p-6 rounded-lg mb-4 border border-gray-300">
@@ -78,8 +74,6 @@ const Integrations = () => {
                         </button>
                     </div>
                 </div>
-
-                {/* Step 3 - Add to Your Website's HTML */}
                 <div className="mb-8">
                     <h2 className="text-2xl font-semibold mb-4 text-gray-800">3. Add to Your Website's HTML</h2>
                     <p className="mb-4 text-gray-700 leading-relaxed">

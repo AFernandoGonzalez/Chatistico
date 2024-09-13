@@ -1,4 +1,4 @@
-// src/components/Navbar.js
+
 
 import React, { useState } from 'react';
 import { Link as ScrollLink } from 'react-scroll';

@@ -15,7 +15,7 @@ const handleErrors = (response) => {
   return response.json();
 };
 
-// Chat APIs
+
 export const sendMessage = async (chatId, text, role_id) => {
   const token = await getAuthToken();
   const response = await fetch(`${API_BASE_URL}/chat/message`, {
@@ -54,9 +54,7 @@ export const getChatHistory = async (userId, chatbotId) => {
   return handleErrors(response);
 };
 
-// Knowledge Base APIs
 export const getQAPairs = async (chatbotId) => {
-  console.log("getQAPairs chatbotid", chatbotId);
   
   const token = await getAuthToken();
   const response = await fetch(`${API_BASE_URL}/knowledge-base?chatbotId=${chatbotId}`, {
@@ -105,7 +103,7 @@ export const deleteQAPair = async (id) => {
   return handleErrors(response);
 };
 
-// Chatbots APIs
+
 export const createChatbot = async (userId, name, description) => {
   const token = await getAuthToken();
   const response = await fetch(`${API_BASE_URL}/chatbots`, {
@@ -164,7 +162,7 @@ export const renameChatbot = async (id, name, description) => {
   return handleErrors(response);
 };
 
-// User Profile APIs
+
 export const getUserProfile = async () => {
   const token = await getAuthToken();
   const response = await fetch(`${API_BASE_URL}/user/profile`, {
@@ -201,7 +199,7 @@ export const updateProfile = async (userId, { username, email, notifications }) 
   return handleErrors(response);
 };
 
-// Integration APIs
+
 export const getIntegrationSettings = async (chatbotId) => {
   const token = await getAuthToken();
   const response = await fetch(`${API_BASE_URL}/integrations/${chatbotId}`, {
@@ -225,7 +223,7 @@ export const updateIntegrationSettings = async (chatbotId, settings) => {
   return handleErrors(response);
 };
 
-// Authentication APIs
+
 export const loginUser = async (email, password) => {
   const response = await fetch(`${API_BASE_URL}/auth/login`, {
     method: "POST",
@@ -259,7 +257,7 @@ export const logoutUser = async () => {
   return handleErrors(response);
 };
 
-// Configuration APIs
+
 export const getConfiguration = async (chatbotId) => {
   const token = await getAuthToken();
   const response = await fetch(`${API_BASE_URL}/configuration?chatbotId=${chatbotId}`, {
@@ -283,7 +281,7 @@ export const saveConfiguration = async (chatbotId, config) => {
   return handleErrors(response);
 };
 
-// Create user in database
+
 export const createUserInDB = async (firebaseUid, email) => {
   const token = await getAuthToken();
   const response = await fetch(`${API_BASE_URL}/auth/signup`, {

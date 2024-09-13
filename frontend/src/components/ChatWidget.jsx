@@ -1,4 +1,4 @@
-// ChatWidget.js
+
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faBars, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
@@ -21,15 +21,15 @@ const ChatWidget = ({
     const [messages, setMessages] = useState([]);
 
     useEffect(() => {
-        // Fetch chat history
-        fetch(`http://localhost:8000/api/chat/history?userId=${userId}&chatbotId=${chatbotId}`)
+        
+        fetch(`http:
             .then(response => response.json())
             .then(data => setMessages(data.chats.flatMap(chat => chat.messages)))
             .catch(error => console.error('Error fetching chat history:', error));
     }, [userId, chatbotId]);
 
     const sendMessage = (message) => {
-        fetch(`http://localhost:8000/api/chat/message`, {
+        fetch(`http:
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ chatbotId, userId, message })

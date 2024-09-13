@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { getChatbots } from '../services/api';
-import { AuthContext } from './AuthContext';  // Get the current user from AuthContext
+import { AuthContext } from './AuthContext';  
 
 export const ChatbotContext = createContext();
 

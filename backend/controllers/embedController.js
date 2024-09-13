@@ -1,6 +1,5 @@
-const supabase = require('../config/db');  // Make sure your Supabase client is properly set up
+const supabase = require('../config/db');
 
-// Controller function for setting up the chatbot widget
 exports.setupChatbot = async (req, res) => {
     const { widget_id, display_type, page_url } = req.body;
 
@@ -9,11 +8,10 @@ exports.setupChatbot = async (req, res) => {
     }
 
     try {
-        // Fetch configuration for the widget from Supabase or your database
         const { data: widgetConfig, error } = await supabase
-            .from('chatbot_configurations')  // Correct table name
+            .from('chatbot_configurations')
             .select('*')
-            .eq('chatbot_id', widget_id)  // Updated column name
+            .eq('chatbot_id', widget_id)
             .single();
 
 
@@ -21,7 +19,6 @@ exports.setupChatbot = async (req, res) => {
             throw error;
         }
 
-        // Assuming `widgetConfig` has the necessary data for widget initialization
         res.json({
             success: true,
             data: widgetConfig,
