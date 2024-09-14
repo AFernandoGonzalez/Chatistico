@@ -1,5 +1,7 @@
-const supabase = require('../config/db');
+const NodeCache = require('node-cache');
 const { getAIResponse } = require('../services/openaiService');
+const supabase = require('../config/db');
+const cache = new NodeCache({ stdTTL: 300, checkperiod: 320 }); // Cache for 5 minutes
 
 exports.getAllChatsByChatbot = async (req, res) => {
   try {
@@ -112,25 +114,104 @@ exports.newMessage = async (req, res) => {
   }
 };
 
+const tokenize = (text) => {
+  if (!text || typeof text !== 'string') {
+    console.log("Invalid input for tokenize:", text);
+    return [];
+  }
+  return text.toLowerCase().split(/\W+/);
+};
+
+const calculateSimilarity = (inputTokens, questionTokens) => {
+  const commonWords = inputTokens.filter(token => questionTokens.includes(token));
+  return commonWords.length / Math.max(inputTokens.length, questionTokens.length);
+};
+
+const searchQAPairs = async (text, chatbotId) => {
+  console.log("searchQAPairs text", text);
+  console.log("searchQAPairs chatbotId", chatbotId);
+
+  // Search for FAQ-type questions in the database
+  const { data, error } = await supabase
+    .from('qa_pairs')
+    .select('id, question, answer')  // Select both question and answer
+    .eq('chatbot_id', chatbotId)
+    .eq('type', 'faq')
+    .not('question', 'is', null);  // Ensure question is not null
+
+  if (error || !data.length) {
+    console.log("No data found in qa_pairs.");
+    return { matchFound: false, message: 'No relevant data found.' };
+  }
+
+  const inputTokens = tokenize(text);
+  let bestMatch = null;
+  let bestSimilarity = 0;
+
+  data.forEach(pair => {
+    const questionTokens = tokenize(pair.question);
+    const similarity = calculateSimilarity(inputTokens, questionTokens);
+
+    if (similarity > bestSimilarity) {
+      bestSimilarity = similarity;
+      bestMatch = pair;  // Store the best match (both question and answer)
+    }
+  });
+
+  if (bestMatch && bestSimilarity > 0.49) {
+    console.log("Best match found:", bestMatch, "with similarity:", bestSimilarity);
+    return { matchFound: true, bestMatch };  // Return both question and answer
+  } else {
+    console.log("No match found with similarity threshold.");
+    return { matchFound: false, message: 'No relevant data found.' };
+  }
+};
 
 exports.sendMessage = async (req, res) => {
   const { chatId, text, role_id, sessionUserId } = req.body;
+
+  console.log("sendMessage chatId", chatId);
 
   if (!chatId || !text || !role_id || !sessionUserId) {
     return res.status(400).json({ error: 'Chat ID, text, role ID, and Session User ID are required.' });
   }
 
   try {
-    const { data: chatExists, error: chatError } = await supabase
+    // Retrieve the chatbot_id from the chats table using chatId
+    const { data: chatData, error: chatError } = await supabase
       .from('chats')
-      .select('id')
+      .select('id, chatbot_id')
       .eq('id', chatId)
       .single();
 
-    if (chatError || !chatExists) {
+    if (chatError || !chatData) {
       return res.status(400).json({ error: 'Invalid chat ID.' });
     }
 
+    const chatbotId = chatData.chatbot_id;
+    const cacheKey = `${chatbotId}_${text}`;  // Unique key for caching based on chatbotId and question
+
+    // Check if the response is cached
+    if (cache.has(cacheKey)) {
+      console.log(`Using cached response for chatId: ${chatId}`);
+      const cachedResponse = cache.get(cacheKey);
+      
+      // Save the cached response
+      const { data: aiMessageData, error: aiMessageError } = await supabase
+        .from('messages')
+        .insert([{ chat_id: chatId, text: cachedResponse, role_id: 1, session_user_id: sessionUserId, timestamp: new Date().toISOString() }])
+        .select('*')
+        .single();
+
+      if (aiMessageError) {
+        console.error('Error inserting cached AI message:', aiMessageError);
+        return res.status(500).json({ error: 'Failed to save cached AI response.' });
+      }
+
+      return res.status(201).json({ userMessage: text, aiMessage: aiMessageData });
+    }
+
+    // Save the user's message first
     const { data: userMessage, error: userMessageError } = await supabase
       .from('messages')
       .insert([{ chat_id: chatId, text, role_id, session_user_id: sessionUserId, timestamp: new Date().toISOString() }])
@@ -142,22 +223,52 @@ exports.sendMessage = async (req, res) => {
       return res.status(500).json({ error: 'Failed to send message.' });
     }
 
-    const aiResponse = await getAIResponse(text);
+    // Search for relevant data in qa_pairs
+    const searchResult = await searchQAPairs(text, chatbotId);
 
-    const { data: aiMessage, error: aiMessageError } = await supabase
-      .from('messages')
-      .insert([{ chat_id: chatId, text: aiResponse, role_id: 1, session_user_id: sessionUserId, timestamp: new Date().toISOString() }])
-      .select('*')
-      .single();
+    if (searchResult.matchFound) {
+      const { question, answer } = searchResult.bestMatch;
 
-    if (aiMessageError) {
-      console.error('Error inserting AI message:', aiMessageError);
-      return res.status(500).json({ error: 'Failed to save AI response.' });
+      // Pass the user's query, the matched question, and the matched answer to the AI
+      const enhancedResponse = await getAIResponse(text, question, answer);
+
+      // Cache the AI response
+      cache.set(cacheKey, enhancedResponse);
+      console.log(`Cached response for chatbotId: ${chatbotId}, question: "${text}"`);
+
+      // Save the enhanced AI response
+      const { data: aiMessageData, error: aiMessageError } = await supabase
+        .from('messages')
+        .insert([{ chat_id: chatId, text: enhancedResponse, role_id: 1, session_user_id: sessionUserId, timestamp: new Date().toISOString() }])
+        .select('*')
+        .single();
+
+      if (aiMessageError) {
+        console.error('Error inserting AI message:', aiMessageError);
+        return res.status(500).json({ error: 'Failed to save AI response.' });
+      }
+
+      return res.status(201).json({ userMessage, aiMessage: aiMessageData });
+    } else {
+      // Handle fallback when no relevant data is found
+      const fallbackMessage = "No relevant data found.";
+
+      // Save the fallback response
+      const { data: aiMessageData, error: aiMessageError } = await supabase
+        .from('messages')
+        .insert([{ chat_id: chatId, text: fallbackMessage, role_id: 1, session_user_id: sessionUserId, timestamp: new Date().toISOString() }])
+        .select('*')
+        .single();
+
+      if (aiMessageError) {
+        console.error('Error inserting fallback message:', aiMessageError);
+        return res.status(500).json({ error: 'Failed to save fallback message.' });
+      }
+
+      return res.status(201).json({ userMessage, aiMessage: aiMessageData });
     }
-
-    res.status(201).json({ userMessage, aiMessage });
   } catch (error) {
     console.error('Failed to process message:', error);
-    res.status(500).json({ error: 'Failed to process message.' });
+    return res.status(500).json({ error: 'Failed to process message.' });
   }
 };
