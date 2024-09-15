@@ -114,6 +114,166 @@ exports.newMessage = async (req, res) => {
   }
 };
 
+// const tokenize = (text) => {
+//   if (!text || typeof text !== 'string') {
+//     console.log("Invalid input for tokenize:", text);
+//     return [];
+//   }
+//   return text.toLowerCase().split(/\W+/);
+// };
+
+// const calculateSimilarity = (inputTokens, questionTokens) => {
+//   const commonWords = inputTokens.filter(token => questionTokens.includes(token));
+//   return commonWords.length / Math.max(inputTokens.length, questionTokens.length);
+// };
+
+// const searchQAPairs = async (text, chatbotId) => {
+//   console.log("searchQAPairs text", text);
+//   console.log("searchQAPairs chatbotId", chatbotId);
+
+//   const { data, error } = await supabase
+//     .from('qa_pairs')
+//     .select('id, question, answer')
+//     .eq('chatbot_id', chatbotId)
+//     .eq('type', 'faq')
+//     .not('question', 'is', null);
+
+//   if (error || !data.length) {
+//     console.log("No data found in qa_pairs.");
+//     return { matchFound: false, message: 'No relevant data found.' };
+//   }
+
+//   const inputTokens = tokenize(text);
+//   let bestMatch = null;
+//   let bestSimilarity = 0;
+
+//   data.forEach(pair => {
+//     const questionTokens = tokenize(pair.question);
+//     const similarity = calculateSimilarity(inputTokens, questionTokens);
+
+//     if (similarity > bestSimilarity) {
+//       bestSimilarity = similarity;
+//       bestMatch = pair;
+//     }
+//   });
+
+//   if (bestMatch && bestSimilarity > 0.49) {
+//     console.log("Best match found:", bestMatch, "with similarity:", bestSimilarity);
+//     return { matchFound: true, bestMatch };
+//   } else {
+//     console.log(`No match found with similarity threshold. match ${bestSimilarity}`);
+//     return { matchFound: false, message: 'I couldn\'t find an exact match for your query. Could you try rephrasing or ask something else?' };
+//   }
+// };
+
+// exports.sendMessage = async (req, res) => {
+//   const { chatId, text, role_id, sessionUserId } = req.body;
+
+//   console.log("sendMessage chatId", chatId);
+
+//   if (!chatId || !text || !role_id || !sessionUserId) {
+//     return res.status(400).json({ error: 'Chat ID, text, role ID, and Session User ID are required.' });
+//   }
+
+//   try {
+//     // Retrieve the chatbot_id from the chats table using chatId
+//     const { data: chatData, error: chatError } = await supabase
+//       .from('chats')
+//       .select('id, chatbot_id')
+//       .eq('id', chatId)
+//       .single();
+
+//     if (chatError || !chatData) {
+//       return res.status(400).json({ error: 'Invalid chat ID.' });
+//     }
+
+//     const chatbotId = chatData.chatbot_id;
+//     const cacheKey = `${chatbotId}_${text}`;  // Unique key for caching based on chatbotId and question
+
+//     // **Save the user's original question first, before looking for an answer**
+//     const { data: userMessage, error: userMessageError } = await supabase
+//       .from('messages')
+//       .insert([{ chat_id: chatId, text, role_id, session_user_id: sessionUserId, timestamp: new Date().toISOString() }])
+//       .select('*')
+//       .single();
+
+//     if (userMessageError) {
+//       console.error('Error inserting user message:', userMessageError);
+//       return res.status(500).json({ error: 'Failed to send message.' });
+//     }
+
+//     // Check if the response is cached
+//     if (cache.has(cacheKey)) {
+//       console.log(`Using cached response for chatId: ${chatId}`);
+//       const cachedResponse = cache.get(cacheKey);
+
+//       // Save the cached response (associated with the user's original question)
+//       const { data: aiMessageData, error: aiMessageError } = await supabase
+//         .from('messages')
+//         .insert([{ chat_id: chatId, text: cachedResponse, role_id: 1, session_user_id: sessionUserId, timestamp: new Date().toISOString() }])
+//         .select('*')
+//         .single();
+
+//       if (aiMessageError) {
+//         console.error('Error inserting cached AI message:', aiMessageError);
+//         return res.status(500).json({ error: 'Failed to save cached AI response.' });
+//       }
+
+//       return res.status(201).json({ userMessage, aiMessage: aiMessageData });
+//     }
+
+//     // Search for relevant data in qa_pairs
+//     const searchResult = await searchQAPairs(text, chatbotId);
+
+//     if (searchResult.matchFound) {
+//       const { question, answer } = searchResult.bestMatch;
+
+//       // Pass the user's query, the matched question, and the matched answer to the AI
+//       const enhancedResponse = await getAIResponse(text, question, answer);
+
+//       // Cache the AI response
+//       cache.set(cacheKey, enhancedResponse);
+//       console.log(`Cached response for chatbotId: ${chatbotId}, question: "${text}"`);
+
+//       // Save the enhanced AI response (associated with the user's original question)
+//       const { data: aiMessageData, error: aiMessageError } = await supabase
+//         .from('messages')
+//         .insert([{ chat_id: chatId, text: enhancedResponse, role_id: 1, session_user_id: sessionUserId, timestamp: new Date().toISOString() }])
+//         .select('*')
+//         .single();
+
+//       if (aiMessageError) {
+//         console.error('Error inserting AI message:', aiMessageError);
+//         return res.status(500).json({ error: 'Failed to save AI response.' });
+//       }
+
+//       return res.status(201).json({ userMessage, aiMessage: aiMessageData });
+//     } else {
+//       // Handle fallback when no relevant data is found
+//       const fallbackMessage = "I couldn't find an exact match for your query. Could you try rephrasing or ask something else?";
+
+//       // Save the fallback response (associated with the user's original question)
+//       const { data: aiMessageData, error: aiMessageError } = await supabase
+//         .from('messages')
+//         .insert([{ chat_id: chatId, text: fallbackMessage, role_id: 1, session_user_id: sessionUserId, timestamp: new Date().toISOString() }])
+//         .select('*')
+//         .single();
+
+//       if (aiMessageError) {
+//         console.error('Error inserting fallback message:', aiMessageError);
+//         return res.status(500).json({ error: 'Failed to save fallback message.' });
+//       }
+
+//       return res.status(201).json({ userMessage, aiMessage: aiMessageData });
+//     }
+//   } catch (error) {
+//     console.error('Failed to process message:', error);
+//     return res.status(500).json({ error: 'Failed to process message.' });
+//   }
+// };
+
+
+
 const tokenize = (text) => {
   if (!text || typeof text !== 'string') {
     console.log("Invalid input for tokenize:", text);
@@ -229,8 +389,12 @@ exports.sendMessage = async (req, res) => {
     if (searchResult.matchFound) {
       const { question, answer } = searchResult.bestMatch;
 
-      // Pass the user's query, the matched question, and the matched answer to the AI
-      const enhancedResponse = await getAIResponse(text, question, answer);
+      // Check if the answer is already good, else pass it to AI
+      let enhancedResponse = answer;
+      
+      if (question !== text) {
+        enhancedResponse = await getAIResponse(text, question, answer);
+      }
 
       // Cache the AI response
       cache.set(cacheKey, enhancedResponse);
@@ -251,7 +415,7 @@ exports.sendMessage = async (req, res) => {
       return res.status(201).json({ userMessage, aiMessage: aiMessageData });
     } else {
       // Handle fallback when no relevant data is found
-      const fallbackMessage = "No relevant data found.";
+      const fallbackMessage = "I'm sorry, I don't have information on that. Could you clarify or try asking another question?";
 
       // Save the fallback response
       const { data: aiMessageData, error: aiMessageError } = await supabase
