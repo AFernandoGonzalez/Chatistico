@@ -10,7 +10,7 @@
 
     const scriptTag = document.currentScript;
     const chatbotId = scriptTag.getAttribute('data-widget-id');
-    const backendUrl = 'http://localhost:8000/api/public/embed/chatbot/configure';
+    const backendUrl = 'https://chatistico-api.vercel.app/api/public/embed/chatbot/configure';
 
     function toggleChat() {
         isChatOpen = !isChatOpen;
