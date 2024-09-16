@@ -166,11 +166,13 @@
         toggleButton.style.backgroundColor = config.icon_color;
         toggleButton.style.color = config.text_color;
         toggleButton.style.width = `${config.chat_icon_size || 50}px`;
+        toggleButton.style.width = '100%';
         toggleButton.style.height = `${config.chat_icon_size || 50}px`;
         toggleButton.style.borderRadius = config.chat_icon_circular ? '50%' : '8px';
         toggleButton.style.backgroundImage = `url('${config.chat_icon_image || ''}')`;
         toggleButton.style.backgroundSize = 'cover';
         toggleButton.style.backgroundPosition = 'center';
+        toggleButton.style.zIndex = '100'
         toggleButton.onclick = toggleChat;
 
         // Function to handle visibility of the toggle button
