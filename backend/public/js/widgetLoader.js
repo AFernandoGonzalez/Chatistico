@@ -1,4 +1,3 @@
-
 (function () {
     let isChatOpen = false;
     let config = {};
@@ -10,91 +9,75 @@
 
     const scriptTag = document.currentScript;
     const chatbotId = scriptTag.getAttribute('data-widget-id');
-    const backendUrl = 'https://chatistico-api.vercel.app/api/public/embed/chatbot/configure';
+    const backendUrl = 'http://localhost:8000/api/public/embed/chatbot/configure';
 
     function toggleChat() {
         isChatOpen = !isChatOpen;
         const chatbotContainer = document.getElementById('chatbot-container');
         const toggleButtonIcon = document.getElementById('toggle-button-icon');
 
-        function toggleWS() {
-            if (window.innerWidth <= 640) {
-                if (isChatOpen) {
-                    toggleButton.classList.add('hidden');
-                } else {
-                    toggleButton.classList.remove('hidden');
-                }
-            } else {
-                toggleButton.classList.remove('hidden');
-            }
-        }
-        toggleWS();
-        window.addEventListener('resize', toggleWS);
-
         if (isChatOpen) {
             chatbotContainer.style.display = 'block';
-            toggleButtonIcon.className = 'fas fa-times';
+            toggleButtonIcon.className = 'fas fa-times'; // Change toggle icon to close
             if (messages.length === 0) {
                 performGetChatAction('getChatHistory');
             }
         } else {
             chatbotContainer.style.display = 'none';
-            toggleButtonIcon.className = 'fas fa-bars';
+            toggleButtonIcon.className = 'fas fa-comments'; // Change icon back to open
+        }
+
+        adjustToggleButtonVisibility(); // Ensure toggle button is properly handled
+    }
+
+    function adjustToggleButtonVisibility() {
+        // Ensure the toggle button is visible when the chat is closed
+        if (window.innerWidth <= 640) {
+            toggleButton.style.display = isChatOpen ? 'none' : 'block';
+        } else {
+            toggleButton.style.display = 'block';
         }
     }
 
-    function loadFontAwesome() {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css';
-        document.head.appendChild(link);
-    }
-
-    function loadTailwind() {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css';
-        document.head.appendChild(link);
-    }
+    // function loadFontAwesome() {
+    //     const link = document.createElement('link');
+    //     link.rel = 'stylesheet';
+    //     link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css';
+    //     document.head.appendChild(link);
+    // }
 
     function loadChatbot(configuration) {
         config = configuration.data;
 
         const chatbotContainer = document.createElement('div');
         chatbotContainer.id = 'chatbot-container';
-        chatbotContainer.className = 'chat-widget-preview fixed bottom-[50px] right-0 mb-5 shadow-lg overflow-hidden';
-        chatbotContainer.style.width = `${config.chat_width || 350}px`;
-        chatbotContainer.style.maxWidth = '600px';
-        chatbotContainer.style.minWidth = '350px';
+        chatbotContainer.style.position = 'fixed';
+        chatbotContainer.style.bottom = '0px';
+        chatbotContainer.style.right = '0px';
+        chatbotContainer.style.boxShadow = '0px 10px 30px rgba(0, 0, 0, 0.2)';
+        chatbotContainer.style.transition = 'all 0.3s ease-in-out';
+        chatbotContainer.style.width = '350px';
         chatbotContainer.style.height = '600px';
-        chatbotContainer.style.maxHeight = '600px';
+        chatbotContainer.style.maxWidth = '100%';
+        chatbotContainer.style.maxHeight = '100%';
         chatbotContainer.style.backgroundColor = '#ffffff';
+        chatbotContainer.style.borderRadius = '16px';
         chatbotContainer.style.display = 'none';
-        chatbotContainer.style.zIndex = '10';
+        chatbotContainer.style.zIndex = '1000';
+        chatbotContainer.style.overflow = 'hidden';
         document.body.appendChild(chatbotContainer);
 
         function adjustChatbotSize() {
             if (window.innerWidth <= 640) {
-                chatbotContainer.style.maxWidth = '100%';
-                chatbotContainer.style.maxHeight = '100%';
+                chatbotContainer.style.bottom = '0';
                 chatbotContainer.style.width = '100%';
                 chatbotContainer.style.height = '100%';
-                chatbotContainer.style.bottom = '0';
-                chatbotContainer.style.right = '0';
-                chatbotContainer.style.top = '0';
-                chatbotContainer.style.left = '0';
                 chatbotContainer.style.borderRadius = '0';
             } else {
-                chatbotContainer.style.width = `${config.chat_width || 350}px`;
-                chatbotContainer.style.maxWidth = '600px';
-                chatbotContainer.style.minWidth = '350px';
+                chatbotContainer.style.bottom = '0px';
+                chatbotContainer.style.width = '350px';
                 chatbotContainer.style.height = '600px';
-                chatbotContainer.style.maxHeight = '600px';
-                chatbotContainer.style.bottom = '';
-                chatbotContainer.style.right = '';
-                chatbotContainer.style.top = '';
-                chatbotContainer.style.left = '';
-                chatbotContainer.style.borderRadius = '';
+                chatbotContainer.style.borderRadius = '16px';
             }
         }
         adjustChatbotSize();
@@ -102,107 +85,128 @@
 
         // Chat Header
         const chatHeader = document.createElement('div');
-        chatHeader.className = 'flex items-center justify-between p-3';
+        chatHeader.style.display = 'flex';
+        chatHeader.style.alignItems = 'center';
+        chatHeader.style.justifyContent = 'space-between';
+        chatHeader.style.padding = '16px';
         chatHeader.style.backgroundColor = config.primary_color;
+        chatHeader.style.borderBottom = '1px solid rgba(0, 0, 0, 0.1)';
         chatbotContainer.appendChild(chatHeader);
 
-        function adjustHeader() {
-            if (window.innerWidth <= 640) {
-                chatHeader.classList.remove('rounded-t-lg');
-            } else {
-                chatHeader.classList.add('rounded-t-lg');
-            }
-        }
+        // Create a container for the avatar and title
+        const avatarTitleContainer = document.createElement('div');
+        avatarTitleContainer.style.display = 'flex';
+        avatarTitleContainer.style.alignItems = 'center';
 
-        adjustHeader();
+        // Agent Avatar
+        const agentAvatar = document.createElement('img');
+        agentAvatar.src = config.agent_avatar || 'https://images.unsplash.com/photo-1561212044-bac5ef688a07?w=900&auto=format&fit=crop&q=60'; // Default agent image
+        agentAvatar.alt = 'Agent Avatar';
+        agentAvatar.style.width = '48px';
+        agentAvatar.style.height = '48px';
+        agentAvatar.style.borderRadius = '50%';
+        agentAvatar.style.marginRight = '8px';
+        avatarTitleContainer.appendChild(agentAvatar);
 
-        window.addEventListener('resize', adjustHeader);
-
+        // Chat Title
         const chatTitle = document.createElement('h3');
-        chatTitle.className = 'font-bold text-xl';
+        chatTitle.style.fontWeight = 'bold';
+        chatTitle.style.fontSize = '1.25rem';
         chatTitle.style.color = config.text_color;
         chatTitle.textContent = config.chatbot_name || 'Chatbot';
-        chatHeader.appendChild(chatTitle);
+        avatarTitleContainer.appendChild(chatTitle);
 
-        // Close button in chat header
+        chatHeader.appendChild(avatarTitleContainer);
+
+        // Close Button
         const closeButton = document.createElement('button');
-        closeButton.style.color = config.text_color;
+        closeButton.style.color = '#ffffff';
         closeButton.innerHTML = '<i class="fas fa-times"></i>';
+        closeButton.style.cursor = 'pointer';
         closeButton.onclick = toggleChat;
         chatHeader.appendChild(closeButton);
 
         // Chat Content
         const chatContent = document.createElement('div');
         chatContent.id = 'chat-content';
-        chatContent.className = 'chat-content p-4 flex-1 overflow-y-auto bg-gray-50';
-        chatContent.style.height = '82%';
+        chatContent.style.padding = '16px';
+        chatContent.style.flex = '1';
+        chatContent.style.overflowY = 'auto';
+        chatContent.style.backgroundColor = '#f3f4f6';
+        chatContent.style.height = 'calc(100% - 150px)';
         chatbotContainer.appendChild(chatContent);
 
-        // Chat Input
+        // Chat Input Area
         const chatInputContainer = document.createElement('div');
-        chatInputContainer.className = 'chat-input border-t p-3 bg-white flex items-center';
+        chatInputContainer.style.display = 'flex';
+        chatInputContainer.style.alignItems = 'center';
+        chatInputContainer.style.padding = '10px';
+        chatInputContainer.style.backgroundColor = '#ffffff';
+        chatInputContainer.style.borderTop = '1px solid #e2e8f0';
+        chatInputContainer.style.boxShadow = '0 -1px 5px rgba(0, 0, 0, 0.1)';
         chatbotContainer.appendChild(chatInputContainer);
 
         const inputField = document.createElement('input');
         inputField.id = 'chat-input-field';
         inputField.type = 'text';
-        inputField.placeholder = 'Type your message here';
-        inputField.className = 'w-full p-3 rounded-md focus:outline-none text-black';
+        inputField.placeholder = 'Type your message...';
+        inputField.style.width = '100%';
+        inputField.style.padding = '12px';
+        inputField.style.borderRadius = '8px';
+        inputField.style.border = '1px solid #cbd5e1';
+        inputField.style.outline = 'none';
+        inputField.style.color = '#1f2937';
+        inputField.style.backgroundColor = '#ffffff';
+        inputField.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
         chatInputContainer.appendChild(inputField);
 
-        // Send button with paper plane icon
         const sendButton = document.createElement('button');
-        sendButton.className = 'ml-2 p-2';
-        sendButton.innerHTML = `<i class="fas fa-paper-plane" style="color: ${config.icon_color};"></i>`;
+        sendButton.style.marginLeft = '8px';
+        sendButton.style.width = '50px';
+        sendButton.style.padding = '12px';
+        sendButton.style.borderRadius = '50%';
+        sendButton.style.color = config.primary_color;
+        sendButton.style.cursor = 'pointer';
+        sendButton.style.transition = 'background-color 0.2s ease-in-out';
+        sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
         sendButton.onclick = sendMessage;
         chatInputContainer.appendChild(sendButton);
 
-        // Append the chatbot container to the body
+        // Append chatbot container to the body
         document.body.appendChild(chatbotContainer);
 
         // Create toggle button for chat
         toggleButton = document.createElement('button');
-        toggleButton.className = 'fixed bottom-[10px] right-0 p-3 rounded-full shadow-lg';
-        toggleButton.style.backgroundColor = config.icon_color;
-        toggleButton.style.color = config.text_color;
-        toggleButton.style.width = `${config.chat_icon_size || 50}px`;
-        toggleButton.style.height = `${config.chat_icon_size || 50}px`;
-        toggleButton.style.borderRadius = config.chat_icon_circular ? '50%' : '8px';
+        toggleButton.style.position = 'fixed';
+        toggleButton.style.bottom = '0';
+        toggleButton.style.right = '0';
+        toggleButton.style.padding = '12px';
+        toggleButton.style.backgroundColor = '#2563eb';
+        toggleButton.style.borderRadius = '50%';
+        toggleButton.style.color = '#ffffff';
+        toggleButton.style.boxShadow = '0px 10px 30px rgba(0, 0, 0, 0.2)';
+        toggleButton.style.cursor = 'pointer';
+        toggleButton.style.transition = 'all 0.3s ease-in-out';
+        toggleButton.style.width = '60px';
+        toggleButton.style.height = '60px';
         toggleButton.style.backgroundImage = `url('${config.chat_icon_image || ''}')`;
         toggleButton.style.backgroundSize = 'cover';
         toggleButton.style.backgroundPosition = 'center';
         toggleButton.onclick = toggleChat;
 
-        // Function to handle visibility of the toggle button
-        function adjustToggleButtonVisibility() {
-            if (window.innerWidth <= 640) {
-                if (isChatOpen) {
-                    toggleButton.classList.add('hidden');
-                } else {
-                    toggleButton.classList.remove('hidden');
-                }
-            } else {
-                toggleButton.classList.remove('hidden');
-            }
-        }
-
-        window.addEventListener('resize', adjustToggleButtonVisibility);
-
         const toggleButtonIcon = document.createElement('i');
         toggleButtonIcon.id = 'toggle-button-icon';
-        toggleButtonIcon.className = 'fas fa-bars'; // Default icon
+        toggleButtonIcon.className = 'fas fa-comments';
         toggleButton.appendChild(toggleButtonIcon);
-
-        // Only show icon if no image is set
-        if (!config.chat_icon_image) {
-            toggleButton.appendChild(toggleButtonIcon);
-        }
 
         // Append the toggle button to the body
         document.body.appendChild(toggleButton);
 
-        // Initial call to adjust toggle button visibility
-        adjustToggleButtonVisibility();
+        window.addEventListener('resize', adjustToggleButtonVisibility);
 
         // Auto open chat if configured to do so
         if (config.auto_open_behavior === 'auto') {
@@ -230,7 +234,6 @@
                             chatId = data.chats[0].id;
                             displayMessages(messages);
                         } else {
-                            // If no existing chat, create a new one
                             performPostChatAction('createNewChat');
                         }
                     } else if (action === 'getConfiguration') {
@@ -266,7 +269,7 @@
                     throw new Error(data.error);
                 }
                 if (action === 'createNewChat') {
-                    chatId = data.chatId;  // Update chatId after creating a new chat
+                    chatId = data.chatId;
                     messages = [];
                     displayMessages(messages);
                 }
@@ -277,23 +280,24 @@
                 throw error;
             });
     }
+
     // Display fetched chat messages
     function displayMessages(messages) {
         const chatContent = document.getElementById('chat-content');
         chatContent.innerHTML = ''; // Clear existing content
 
-        // Wrapper for the chat messages
         const chatMessageWrapper = document.createElement('div');
-        chatMessageWrapper.className = 'chat-message space-y-4';  // Space between messages
 
         messages.forEach(message => {
             const messageWrapper = document.createElement('div');
 
-            if (message.role_id === 2) {  // Assuming role_id 2 is for the user/customer
-                messageWrapper.className = 'flex items-center justify-end space-x-3';  // Align message to the right
+            if (message.role_id === 2) {
+                messageWrapper.className = 'flex items-center justify-end space-x-3';
                 const userMessage = document.createElement('div');
                 userMessage.style.cssText = `
+                    width: 70%;
                     padding: 10px 15px;
+                    margin: 10px 0;
                     border-radius: 10px 10px 2px 10px;
                     background-color: ${config.primary_color};
                     color: ${config.text_color};
@@ -304,9 +308,11 @@
                 messageWrapper.className = 'flex items-center space-x-3';
                 const botMessage = document.createElement('div');
                 botMessage.style.cssText = `
+                    width: 70%;
                     padding: 10px 15px;
+                    margin: 10px 0;
                     border-radius: 10px 10px 10px 2px;
-                    background-color: rgb(241, 245, 249);
+                    background-color: rgb(231 231 231);
                     color: rgb(0, 0, 0);
                 `;
                 botMessage.textContent = message.text;
@@ -330,7 +336,7 @@
         }
 
         if (!chatId) {
-            performPostChatAction('createNewChat'); 
+            performPostChatAction('createNewChat');
             return;
         }
         const userMessage = { text, role_id: role_id };
@@ -338,7 +344,6 @@
         displayMessages(messages);
         inputField.value = '';
 
-        // Display typing indicator for the bot response
         const typingIndicator = document.createElement('div');
         typingIndicator.className = 'typing-indicator';
         typingIndicator.style.cssText = 'padding: 10px; font-style: italic; color: gray;';
@@ -347,25 +352,21 @@
         chatContent.appendChild(typingIndicator);
         chatContent.scrollTop = chatContent.scrollHeight;
 
-        // Perform the POST request to send the message
         performPostChatAction('sendMessage', text)
             .then((data) => {
-                // Remove typing indicator once the AI response is received
                 typingIndicator.remove();
 
-                // Only render the AI response here to avoid duplicating the user's message
                 if (data.aiMessage) {
-                    messages.push(data.aiMessage);  // Only push the bot's response
-                    displayMessages(messages);      // Re-render messages with AI response
+                    messages.push(data.aiMessage);
+                    displayMessages(messages);
                 }
             })
             .catch((error) => {
                 console.error('Error sending message:', error);
-                typingIndicator.remove();  // Remove typing indicator on error
+                typingIndicator.remove();
             });
     }
 
-    // Generate or fetch user ID
     function getOrCreateUserId() {
         let userId = localStorage.getItem('chat_user_id');
         if (!userId) {
@@ -375,9 +376,6 @@
         return userId;
     }
 
-    // Load resources
-    loadFontAwesome();
-    loadTailwind();
-
+    // loadFontAwesome();
     performGetChatAction('getConfiguration');
 })();
