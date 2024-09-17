@@ -24,14 +24,13 @@
             }
         } else {
             chatbotContainer.style.display = 'none';
-            toggleButtonIcon.className = 'fas fa-comments'; // Change icon back to open
+            toggleButtonIcon.className = 'fas fa-comments';
         }
 
-        adjustToggleButtonVisibility(); // Ensure toggle button is properly handled
+        adjustToggleButtonVisibility();
     }
 
     function adjustToggleButtonVisibility() {
-        // Ensure the toggle button is visible when the chat is closed
         if (window.innerWidth <= 640) {
             toggleButton.style.display = isChatOpen ? 'none' : 'block';
         } else {
@@ -39,12 +38,39 @@
         }
     }
 
-    // function loadFontAwesome() {
-    //     const link = document.createElement('link');
-    //     link.rel = 'stylesheet';
-    //     link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css';
-    //     document.head.appendChild(link);
-    // }
+    function displayValidationError(message) {
+        const chatContent = document.getElementById('chat-content');
+    
+        // Create a container for the error message
+        const errorWrapper = document.createElement('div');
+        errorWrapper.style.display = 'flex';
+        errorWrapper.style.justifyContent = 'center';
+        errorWrapper.style.margin = '10px 0';
+        
+        // Create the error message element
+        const errorMessage = document.createElement('div');
+        errorMessage.style.backgroundColor = '#f8d7da';  // Light red background for error
+        errorMessage.style.color = '#721c24';  // Dark red text for error
+        errorMessage.style.padding = '10px 15px';
+        errorMessage.style.borderRadius = '5px';
+        errorMessage.style.fontSize = '0.9rem';
+        errorMessage.textContent = message;
+    
+        // Append the error message to the wrapper
+        errorWrapper.appendChild(errorMessage);
+    
+        // Append the error message to the chat content
+        chatContent.appendChild(errorWrapper);
+    
+        // Scroll to the bottom to show the latest message
+        chatContent.scrollTop = chatContent.scrollHeight;
+    
+        // Optionally, remove the error message after a few seconds (e.g., 5 seconds)
+        setTimeout(() => {
+            errorWrapper.remove();
+        }, 5000);
+    }
+    
 
     function loadChatbot(configuration) {
         config = configuration.data;
@@ -100,7 +126,7 @@
 
         // Agent Avatar
         const agentAvatar = document.createElement('img');
-        agentAvatar.src = config.agent_avatar || 'https://images.unsplash.com/photo-1561212044-bac5ef688a07?w=900&auto=format&fit=crop&q=60'; // Default agent image
+        agentAvatar.src = config.agent_avatar || 'https://images.unsplash.com/photo-1561212044-bac5ef688a07?w=900&auto=format&fit=crop&q=60';
         agentAvatar.alt = 'Agent Avatar';
         agentAvatar.style.width = '48px';
         agentAvatar.style.height = '48px';
@@ -226,7 +252,8 @@
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
-                    console.error('Error:', data.error);
+                    // console.error('Error:', data.error);
+                    displayValidationError(data.error);
                 } else {
                     if (action === 'getChatHistory') {
                         if (data.chats.length > 0) {
@@ -241,7 +268,9 @@
                     }
                 }
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                console.error('Error:', error)
+            });
     }
 
     // Perform POST actions for chat
@@ -277,18 +306,18 @@
             })
             .catch(error => {
                 console.error('Error:', error);
+                displayValidationError(error.message || 'An error occurred while processing your request.');
                 throw error;
             });
     }
 
     // Display fetched chat messages
-    // Display fetched chat messages
     function displayMessages(messages) {
         const chatContent = document.getElementById('chat-content');
-        chatContent.innerHTML = ''; // Clear existing content
+        chatContent.innerHTML = ''; 
 
         const chatMessageWrapper = document.createElement('div');
-        const lastMessageIndex = messages.length - 1; // Index of the latest message
+        const lastMessageIndex = messages.length - 1; 
 
         messages.forEach((message, index) => {
             const messageWrapper = document.createElement('div');
@@ -298,12 +327,12 @@
 
             // Only apply the fade-in effect to the last message
             if (index === lastMessageIndex) {
-                messageWrapper.style.animation = 'fadeInUp 0.7s ease-in-out'; // Fade-in effect for the last message only
+                messageWrapper.style.animation = 'fadeInUp 0.7s ease-in-out';
             }
 
             if (message.role_id === 2) {
                 // User's message (aligned to the right)
-                messageWrapper.style.alignItems = 'flex-end'; // Align to the right
+                messageWrapper.style.alignItems = 'flex-end';
 
                 // Display "You" above the message
                 const userName = document.createElement('span');
@@ -333,7 +362,7 @@
                 messageWrapper.appendChild(userMessage);
             } else {
                 // Bot's message (aligned to the left)
-                messageWrapper.style.alignItems = 'flex-start'; // Align to the left
+                messageWrapper.style.alignItems = 'flex-start';
 
                 // Display bot's name above the message
                 const botName = document.createElement('span');
@@ -401,6 +430,11 @@
         const inputField = document.getElementById('chat-input-field');
         const text = inputField.value.trim();
 
+        if (text.length < 1 || text.length > 150) {
+            displayValidationError('Message must be between 1 and 150 characters long.'); // Show error in chatbot
+            return;
+        }
+
         if (!text) {
             return console.error('Text is empty.');
         }
@@ -419,7 +453,6 @@
         typingIndicator.className = 'typing-indicator';
         typingIndicator.style.cssText = 'display: flex; align-items: center;';
 
-        // Create the "..." dots
         for (let i = 0; i < 3; i++) {
             const dot = document.createElement('span');
             dot.className = `dot dot-${i}`;

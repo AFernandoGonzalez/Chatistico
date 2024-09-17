@@ -1,3 +1,4 @@
+const DOMPurify = require('dompurify')(new (require('jsdom')).JSDOM().window);
 const NodeCache = require('node-cache');
 const { getAIResponse } = require('../services/openaiService');
 const supabase = require('../config/db');
@@ -330,11 +331,16 @@ const searchQAPairs = async (text, chatbotId) => {
 exports.sendMessage = async (req, res) => {
   const { chatId, text, role_id, sessionUserId } = req.body;
 
-  console.log("sendMessage chatId", chatId);
-
   if (!chatId || !text || !role_id || !sessionUserId) {
     return res.status(400).json({ error: 'Chat ID, text, role ID, and Session User ID are required.' });
   }
+
+  const sanitizedText = DOMPurify.sanitize(text);
+
+  if (sanitizedText.length < 1 || sanitizedText.length > 150) {
+    return res.status(400).json({ error: 'Message must be between 1 and 150 characters long.' });
+  }
+
 
   try {
     // Retrieve the chatbot_id from the chats table using chatId
