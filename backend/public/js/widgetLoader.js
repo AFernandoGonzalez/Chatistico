@@ -282,39 +282,83 @@
     }
 
     // Display fetched chat messages
+    // Display fetched chat messages
     function displayMessages(messages) {
         const chatContent = document.getElementById('chat-content');
         chatContent.innerHTML = ''; // Clear existing content
 
         const chatMessageWrapper = document.createElement('div');
+        const lastMessageIndex = messages.length - 1; // Index of the latest message
 
-        messages.forEach(message => {
+        messages.forEach((message, index) => {
             const messageWrapper = document.createElement('div');
+            messageWrapper.style.display = 'flex';
+            messageWrapper.style.flexDirection = 'column';
+            messageWrapper.style.marginBottom = '10px';
+
+            // Only apply the fade-in effect to the last message
+            if (index === lastMessageIndex) {
+                messageWrapper.style.animation = 'fadeInUp 0.7s ease-in-out'; // Fade-in effect for the last message only
+            }
 
             if (message.role_id === 2) {
-                messageWrapper.className = 'flex items-center justify-end space-x-3';
+                // User's message (aligned to the right)
+                messageWrapper.style.alignItems = 'flex-end'; // Align to the right
+
+                // Display "You" above the message
+                const userName = document.createElement('span');
+                userName.style.fontSize = '0.9rem';
+                userName.style.color = 'gray';
+                userName.textContent = 'You';
+                messageWrapper.appendChild(userName);
+
+                // User message bubble
                 const userMessage = document.createElement('div');
                 userMessage.style.cssText = `
-                    width: 70%;
-                    padding: 10px 15px;
-                    margin: 10px 0;
-                    border-radius: 10px 10px 2px 10px;
-                    background-color: ${config.primary_color};
-                    color: ${config.text_color};
-                `;
+                width: 70%;
+                padding: 10px 15px;
+                margin: 10px 0;
+                border-radius: 10px 10px 2px 10px;
+                background-color: ${config.primary_color};
+                color: ${config.text_color};
+            `;
+
+                // Apply the text fade-in effect only to the last message
+                if (index === lastMessageIndex) {
+                    userMessage.style.animation = 'fadeInText 0.6s ease-in-out 0.3s'; // Text fades in after bubble
+                    userMessage.style.animationFillMode = 'backwards';
+                }
+
                 userMessage.textContent = message.text;
                 messageWrapper.appendChild(userMessage);
             } else {
-                messageWrapper.className = 'flex items-center space-x-3';
+                // Bot's message (aligned to the left)
+                messageWrapper.style.alignItems = 'flex-start'; // Align to the left
+
+                // Display bot's name above the message
+                const botName = document.createElement('span');
+                botName.style.fontSize = '0.9rem';
+                botName.style.color = 'gray';
+                botName.textContent = config.chatbot_name || 'Bot';
+                messageWrapper.appendChild(botName);
+
+                // Bot message bubble
                 const botMessage = document.createElement('div');
                 botMessage.style.cssText = `
-                    width: 70%;
-                    padding: 10px 15px;
-                    margin: 10px 0;
-                    border-radius: 10px 10px 10px 2px;
-                    background-color: rgb(231 231 231);
-                    color: rgb(0, 0, 0);
-                `;
+                width: 70%;
+                padding: 10px 15px;
+                margin: 10px 0;
+                border-radius: 10px 10px 10px 2px;
+                background-color: rgb(231, 231, 231);
+                color: rgb(0, 0, 0);
+            `;
+
+                // Apply the text fade-in effect only to the last message
+                if (index === lastMessageIndex) {
+                    botMessage.style.animation = 'fadeInText 0.6s ease-in-out 0.3s'; // Text fades in after bubble
+                    botMessage.style.animationFillMode = 'backwards';
+                }
+
                 botMessage.textContent = message.text;
                 messageWrapper.appendChild(botMessage);
             }
@@ -323,8 +367,34 @@
         });
 
         chatContent.appendChild(chatMessageWrapper);
-        chatContent.scrollTop = chatContent.scrollHeight;
+        chatContent.scrollTop = chatContent.scrollHeight; // Scroll to the bottom of chat
     }
+
+    // Add the CSS for fade-in animation effect if not already added
+    if (!document.getElementById('chat-styles')) {
+        const style = document.createElement('style');
+        style.id = 'chat-styles';
+        style.textContent = `
+    @keyframes fadeInUp {
+        0% {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeInText {
+        from { opacity: 0 }
+        to { opacity: 1 }
+    }
+    `;
+        document.head.appendChild(style);
+    }
+
+
 
     // Send message
     function sendMessage() {
@@ -344,14 +414,34 @@
         displayMessages(messages);
         inputField.value = '';
 
+        // Typing indicator
         const typingIndicator = document.createElement('div');
         typingIndicator.className = 'typing-indicator';
-        typingIndicator.style.cssText = 'padding: 10px; font-style: italic; color: gray;';
-        typingIndicator.textContent = 'Bot is typing...';
+        typingIndicator.style.cssText = 'display: flex; align-items: center;';
+
+        // Create the "..." dots
+        for (let i = 0; i < 3; i++) {
+            const dot = document.createElement('span');
+            dot.className = `dot dot-${i}`;
+            dot.style.cssText = `
+                display: inline-block;
+                width: 8px;
+                height: 8px;
+                margin: 0 2px;
+                border-radius: 50%;
+                background-color: gray;
+                animation: bounce 1.4s infinite both;
+                animation-delay: ${i * 0.2}s;
+            `;
+            typingIndicator.appendChild(dot);
+        }
+
+        // Append typing indicator to chat content
         const chatContent = document.getElementById('chat-content');
         chatContent.appendChild(typingIndicator);
         chatContent.scrollTop = chatContent.scrollHeight;
 
+        // Post the message to the server
         performPostChatAction('sendMessage', text)
             .then((data) => {
                 typingIndicator.remove();
@@ -366,6 +456,30 @@
                 typingIndicator.remove();
             });
     }
+
+    // Add the CSS animation for the dots
+    const style = document.createElement('style');
+    style.textContent = `
+    @keyframes bounce {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-5px);
+        }
+    }
+    
+    .dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        margin: 0 2px;
+        border-radius: 50%;
+        background-color: gray;
+    }
+    `;
+    document.head.appendChild(style);
+
 
     function getOrCreateUserId() {
         let userId = localStorage.getItem('chat_user_id');
