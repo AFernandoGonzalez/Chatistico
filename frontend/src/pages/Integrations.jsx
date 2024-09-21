@@ -12,15 +12,15 @@ const Integrations = () => {
     const displayTypes = [
         {
             type: 'Floating Chat',
-            description: `<script async data-widget-id="${chatbotId}" id="chatling-embed-script" type="text/javascript" src="${apiBaseUrl}/js/widgetLoader.js"></script>`
+            description: `<script async data-widget-id="${chatbotId}" id="embed-script" type="text/javascript" src="${apiBaseUrl}/js/widgetLoader.js"></script>`
         },
         {
             type: 'Inline',
-            description: `<div id="chatling-inline-bot" style="width: 100%; height: 500px;"></div>\n<script async data-widget-id="${chatbotId}" data-display="page_inline" id="chatling-embed-script" type="text/javascript" src="${apiBaseUrl}/js/widgetLoader.js"></script>`
+            description: `<script async data-widget-id="${chatbotId}" data-display="page_inline" id="embed-script" type="text/javascript" src="${apiBaseUrl}/js/widgetLoader.js"></script>`
         },
         {
             type: 'Fullscreen',
-            description: `<script async data-widget-id="${chatbotId}" id="chatling-embed-script" data-display="fullscreen" type="text/javascript" src="${apiBaseUrl}/js/widgetLoader.js"></script>`
+            description: `<script async data-widget-id="${chatbotId}" id="embed-script" data-display="fullscreen" type="text/javascript" src="${apiBaseUrl}/js/widgetLoader.js"></script>`
         }
     ];
 
@@ -43,7 +43,7 @@ const Integrations = () => {
                 <p className="mb-10 text-lg  text-gray-600">
                     Follow the steps below to seamlessly integrate the chatbot into your website.
                     <FontAwesomeIcon icon={faQuestionCircle} className="ml-2 text-gray-400" data-tip="Select your display type, copy the code, and paste it into your website's HTML." />
-                    
+
                 </p>
                 <div className="mb-8">
                     <h2 className="text-2xl font-semibold mb-4 text-gray-800">1. Choose Your Display Type</h2>
@@ -66,9 +66,11 @@ const Integrations = () => {
                     <h2 className="text-2xl font-semibold mb-4 text-gray-800">2. Copy Your Embed Code</h2>
                     <div className="relative bg-gray-100 p-6 rounded-lg mb-4 border border-gray-300">
                         <code className="text-sm text-gray-800 block overflow-x-auto break-words">{displayTypes.find(type => type.type === selectedType).description}</code>
+                    </div>
+                    <div className='relative'>
                         <button
                             onClick={handleCopyCode}
-                            className="absolute top-2 right-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center"
+                            className="right-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center"
                         >
                             <FontAwesomeIcon icon={faCopy} className="mr-2" /> Copy Code
                         </button>
