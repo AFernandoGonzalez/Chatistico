@@ -268,15 +268,16 @@ export const getConfiguration = async (chatbotId) => {
   return handleErrors(response);
 };
 
-export const saveConfiguration = async (chatbotId, config) => {
+export const saveConfiguration = async (chatbotId, formData) => {
+  console.log("form data ", formData);
+  
   const token = await getAuthToken();
   const response = await fetch(`${API_BASE_URL}/configuration?chatbotId=${chatbotId}`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(config),
+    body: formData,
   });
   return handleErrors(response);
 };

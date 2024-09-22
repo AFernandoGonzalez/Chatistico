@@ -5,8 +5,6 @@ const chatController = require('../controllers/chatSetupController');
 
 
 router.get('/', chatController.handleGetChatActions);
-
-
 router.post('/', chatController.handlePostChatActions);
 
 module.exports = router;

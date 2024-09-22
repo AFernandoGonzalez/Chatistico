@@ -8,7 +8,7 @@ import { useParams } from 'react-router-dom';
 const KnowledgeBase = () => {
   const { user } = useContext(AuthContext);
   const { id: chatbotId } = useParams(); 
-  const [activeTab, setActiveTab] = useState('text');
+  const [activeTab, setActiveTab] = useState('faq');
   const [dataSources, setDataSources] = useState({
     link: { items: [] },
     text: { items: [] },
@@ -17,7 +17,7 @@ const KnowledgeBase = () => {
   });
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedType, setSelectedType] = useState('text');
+  const [selectedType, setSelectedType] = useState('faq');
   const [editingEntry, setEditingEntry] = useState(null);
   const modalRef = useRef(null);
   
@@ -95,7 +95,7 @@ const KnowledgeBase = () => {
     <div className="p-6 bg-white shadow-md rounded-md max-w-6xl mx-auto">
       <Header setShowAddModal={setShowAddModal} />
       <TabSelector activeTab={activeTab} setActiveTab={setActiveTab} />
-      <ActionButtons />
+      {/* <ActionButtons /> */}
       <DataSummary dataSources={dataSources} activeTab={activeTab} />
       <EntriesTable
         dataSources={dataSources}
@@ -134,7 +134,7 @@ const Header = ({ setShowAddModal }) => (
 
 const TabSelector = ({ activeTab, setActiveTab }) => (
   <div className="flex space-x-4 mb-6">
-    {['link', 'text', 'faq', 'document'].map((type) => (
+    {['faq'].map((type) => (
       <button key={type} onClick={() => setActiveTab(type)} className={`px-4 py-2 ${activeTab === type ? 'border-b-2 border-blue-500 text-blue-600 font-bold' : 'text-gray-500'}`}>
         {type.charAt(0).toUpperCase() + type.slice(1)}
       </button>
@@ -385,7 +385,7 @@ const AddModal = ({
         </button>
         <h2 className="text-xl font-bold mb-4">Add New Data Source</h2>
         <div className="flex space-x-4 mb-6">
-          {['link', 'text', 'faq', 'document'].map((type) => (
+          {['faq'].map((type) => (
             <button key={type} onClick={() => setSelectedType(type)} className={`px-4 py-2 ${selectedType === type ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
               {type.charAt(0).toUpperCase() + type.slice(1)}
             </button>

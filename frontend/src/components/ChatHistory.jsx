@@ -65,7 +65,7 @@ const ChatHistory = () => {
               <FontAwesomeIcon icon={faUserCircle} className="text-gray-400 mr-3 text-2xl" />
               <div className="flex-grow">
                 <p className="font-semibold">
-                  Chat with {chat.customer?.name || `Customer ID: ${chat.customer_id}`}
+                  Chat with: {chat.customer?.name || "Anonymous"}
                 </p>
                 <p className="text-sm">
                   Last message: {new Date(chat.last_timestamp).toLocaleString()}
@@ -82,7 +82,7 @@ const ChatHistory = () => {
             <div className="flex items-center mb-4">
               <div className="flex-grow">
                 <h2 className="text-xl font-semibold text-gray-900">
-                  Chat with {selectedChat.customer?.name || `Customer ID: ${selectedChat.customer_id}`}
+                  Chat with {selectedChat.customer?.name|| "Anonymous User"}
                 </h2>
               </div>
               <div className="flex space-x-3">

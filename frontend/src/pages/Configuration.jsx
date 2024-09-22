@@ -8,7 +8,6 @@ import { toast } from 'react-toastify';
 
 const Configuration = () => {
   const { id: chatbotId } = useParams();
-  const [activeTab, setActiveTab] = useState('design');
   const [primaryColor, setPrimaryColor] = useState('#000000');
   const [textColor, setTextColor] = useState('#ffffff');
   const [iconColor, setIconColor] = useState('#000000');
@@ -19,9 +18,11 @@ const Configuration = () => {
   const [botIconCircular, setBotIconCircular] = useState(false);
   const [chatIconCircular, setChatIconCircular] = useState(false);
   const [chatIconSize, setChatIconSize] = useState(55);
-  const [botIconImage, setBotIconImage] = useState('');
-  const [chatIconImage, setChatIconImage] = useState('');
-  const [chatbotName, setChatbotName] = useState('');
+  const [botIconImage, setBotIconImage] = useState(''); // Stores the image URL
+  const [botIconPreview, setBotIconPreview] = useState(null); // Preview for selected file
+  const [chatIconImage, setChatIconImage] = useState(''); // Stores the image URL
+  const [chatIconPreview, setChatIconPreview] = useState(null); // Preview for selected file
+  const [chatbotName, setChatbotName] = useState('Support Bot');
   const [isChatOpen, setIsChatOpen] = useState(true);
   const [loading, setLoading] = useState(true);
 
@@ -30,11 +31,10 @@ const Configuration = () => {
       setLoading(true);
       try {
         const response = await getConfiguration(chatbotId);
-        
         if (response.data) {
           const configData = response.data;
-  
-          
+          console.log("configData", configData);
+
           setPrimaryColor(configData.primary_color || '#000000');
           setTextColor(configData.text_color || '#ffffff');
           setIconColor(configData.icon_color || '#000000');
@@ -45,22 +45,22 @@ const Configuration = () => {
           setBotIconCircular(configData.bot_icon_circular || false);
           setChatIconCircular(configData.chat_icon_circular || false);
           setChatIconSize(configData.chat_icon_size || 55);
-          setBotIconImage(configData.bot_icon_image || '');
-          setChatIconImage(configData.chat_icon_image || '');
+          setBotIconImage(configData.bot_icon_image || ''); // Load existing image URL
+          setChatIconImage(configData.chat_icon_image || ''); // Load existing image URL
           setChatbotName(configData.chatbot_name || 'Support Bot');
         }
       } catch (error) {
-        console.error('Error fetching configuration:', error);
         toast.error('Error fetching configuration');
       } finally {
         setLoading(false);
       }
     };
-  
     fetchConfiguration();
   }, [chatbotId]);
-  
-  const handleSave = async () => {
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+
     if (!chatbotId) {
       toast.error('Chatbot ID is missing.');
       return;
@@ -71,219 +71,183 @@ const Configuration = () => {
       return;
     }
 
+    const formData = new FormData();
+    formData.append('primary_color', primaryColor);
+    formData.append('text_color', textColor);
+    formData.append('icon_color', iconColor);
+    formData.append('chat_width', chatWidth);
+    formData.append('widget_position', widgetPosition);
+    formData.append('horizontal_spacing', horizontalSpacing);
+    formData.append('vertical_spacing', verticalSpacing);
+    formData.append('bot_icon_circular', botIconCircular);
+    formData.append('chat_icon_circular', chatIconCircular);
+    formData.append('chat_icon_size', chatIconSize);
+    formData.append('chatbot_name', chatbotName);
+
+    if (botIconPreview) {
+      formData.append('bot_icon_image', botIconPreview);
+    }
+    if (chatIconPreview) {
+      formData.append('chat_icon_image', chatIconPreview);
+    }
+
     try {
-      const config = {
-        primary_color: primaryColor,
-        text_color: textColor,
-        icon_color: iconColor,
-        chat_width: chatWidth,
-        widget_position: widgetPosition,
-        horizontal_spacing: horizontalSpacing,
-        vertical_spacing: verticalSpacing,
-        bot_icon_circular: botIconCircular,
-        chat_icon_circular: chatIconCircular,
-        chat_icon_size: chatIconSize,
-        bot_icon_image: botIconImage || '',
-        chat_icon_image: chatIconImage || '',
-        chatbot_name: chatbotName || '',
-      };
-      await saveConfiguration(chatbotId, config);
+      await saveConfiguration(chatbotId, formData);
       toast.success('Settings saved successfully!');
     } catch (error) {
-      console.error('Error saving configuration:', error);
       toast.error('Error saving configuration.');
     }
   };
 
   const handleBotIconImageChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setBotIconImage(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
+    setBotIconImage(URL.createObjectURL(file)); // Set preview URL
+    setBotIconPreview(file); // Store file for upload
   };
 
   const handleChatIconImageChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setChatIconImage(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
+    setChatIconImage(URL.createObjectURL(file)); // Set preview URL
+    setChatIconPreview(file); // Store file for upload
   };
 
   return (
     <div className="flex relative">
       <div className="w-full min-w-[300px] max-w-[400px] h-screen overflow-auto p-6 flex flex-col lg:flex-row">
-        <div className="w-full space-y-6 mb-4">
-          {activeTab === 'design' && (
-            <div>
-              <h2 className="text-2xl font-bold text-primary mb-4">Design</h2>
-              <p className="text-gray-600 mb-6">Customize the appearance of the chat widget.</p>
+        <form onSubmit={handleSave} encType="multipart/form-data" className="w-full space-y-6 mb-4">
+          <h2 className="text-2xl font-bold text-primary mb-4">Design</h2>
+          <p className="text-gray-600 mb-6">Customize the appearance of the chat widget.</p>
 
-              <div className="mb-6">
-                <label className="block text-gray-700 font-semibold mb-2">Chatbot Name</label>
+          <div className="mb-6">
+            <label className="block text-gray-700 font-semibold mb-2">Chatbot Name</label>
+            <input
+              type="text"
+              value={chatbotName}
+              onChange={(e) => setChatbotName(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-md"
+              placeholder="Enter chatbot name"
+            />
+          </div>
+
+          <section className="mb-6">
+            <h3 className="text-lg font-semibold text-primary mb-2">Colors</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="text-gray-700 font-medium">Primary Color</label>
                 <input
-                  type="text"
-                  value={chatbotName}
-                  onChange={(e) => setChatbotName(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                  placeholder="Enter chatbot name"
+                  type="color"
+                  value={primaryColor}
+                  onChange={(e) => setPrimaryColor(e.target.value)}
+                  className="w-12 h-12 border border-gray-300 rounded-md"
                 />
               </div>
-
-              <section className="mb-6">
-                <h3 className="text-lg font-semibold text-primary mb-2">Colors</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <label className="text-gray-700 font-medium">Primary Color</label>
-                    <input
-                      type="color"
-                      value={primaryColor}
-                      onChange={(e) => setPrimaryColor(e.target.value)}
-                      className="w-12 h-12 border border-gray-300 rounded-md"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <label className="text-gray-700 font-medium">Text Color</label>
-                    <input
-                      type="color"
-                      value={textColor}
-                      onChange={(e) => setTextColor(e.target.value)}
-                      className="w-12 h-12 border border-gray-300 rounded-md"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <label className="text-gray-700 font-medium">Chat Icon Color</label>
-                    <input
-                      type="color"
-                      value={iconColor}
-                      onChange={(e) => setIconColor(e.target.value)}
-                      className="w-12 h-12 border border-gray-300 rounded-md"
-                    />
-                  </div>
-                </div>
-              </section>
-
-              <section className="mb-6">
-                <h3 className="text-lg font-semibold text-primary mb-2">Chat Width (Desktop)</h3>
-                <div className="flex items-center">
-                  <input
-                    type="range"
-                    min="350"
-                    max="600"
-                    value={chatWidth}
-                    onChange={(e) => setChatWidth(parseInt(e.target.value))}
-                    className="flex-grow accent-primary"
-                  />
-                  <span className="ml-4 text-gray-700">{chatWidth}px</span>
-                </div>
-              </section>
-
-              <section className="mb-6">
-                <h3 className="text-lg font-semibold text-primary mb-2">Bot Icon</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <label className="text-gray-700 font-medium">Circular Shape</label>
-                    <input
-                      type="checkbox"
-                      checked={botIconCircular}
-                      onChange={(e) => setBotIconCircular(e.target.checked)}
-                      className="toggle-checkbox"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <label className="text-gray-700 font-medium">Image</label>
-                    <div className="flex items-center">
-                      <div
-                        className={`w-12 h-12 ${botIconCircular ? 'rounded-full' : ''} bg-cover bg-center flex items-center justify-center`}
-                      >
-                        {botIconImage ? (
-                          <img
-                            src={botIconImage}
-                            alt="Bot Icon"
-                            className={`w-full h-full ${botIconCircular ? 'rounded-full' : ''}`}
-                          />
-                        ) : (
-                          <FontAwesomeIcon icon={faRobot} size="2x" style={{ color: '#ccc' }} />
-                        )}
-                      </div>
-                      <label className="ml-3 bg-gray-200 hover:bg-gray-300 text-black px-3 py-1 rounded-md cursor-pointer">
-                        Change
-                        <input type="file" onChange={handleBotIconImageChange} className="hidden" />
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              <section className="mb-6">
-                <h3 className="text-lg font-semibold text-primary mb-2">Chat Icon</h3>
-                <div className="text-gray-600 mb-2">Appears when chat is closed</div>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <label className="text-gray-700 font-medium">Circular Shape</label>
-                    <input
-                      type="checkbox"
-                      checked={chatIconCircular}
-                      onChange={(e) => setChatIconCircular(e.target.checked)}
-                      className="toggle-checkbox"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <label className="text-gray-700 font-medium">Size</label>
-                    <div className="flex items-center">
-                      <input
-                        type="range"
-                        min="45"
-                        max="55"
-                        value={chatIconSize}
-                        onChange={(e) => setChatIconSize(parseInt(e.target.value))}
-                        className="slider w-full"
-                      />
-                      <span className="ml-4 text-gray-700">{chatIconSize}px</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <label className="text-gray-700 font-medium">Image</label>
-                    <div className="flex items-center">
-                      <div
-                        className={`w-12 h-12 ${chatIconCircular ? 'rounded-full' : ''} bg-cover bg-center flex items-center justify-center`}
-                      >
-                        {chatIconImage ? (
-                          <img
-                            src={chatIconImage}
-                            alt="Chat Icon"
-                            className={`w-full h-full ${chatIconCircular ? 'rounded-full' : ''}`}
-                          />
-                        ) : (
-                          <FontAwesomeIcon icon={faUserCircle} size="2x" style={{ color: '#ccc' }} />
-                        )}
-                      </div>
-                      <label className="ml-3 bg-gray-200 hover:bg-gray-300 text-black px-3 py-1 rounded-md cursor-pointer">
-                        Change
-                        <input type="file" onChange={handleChatIconImageChange} className="hidden" />
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              <button
-                onClick={handleSave}
-                className="mt-4 px-6 py-2 bg-primary text-white rounded-md shadow-lg hover:bg-primary-dark transition"
-              >
-                <FontAwesomeIcon icon={faSave} className="mr-2" /> Save
-              </button>
+              <div className="flex items-center justify-between">
+                <label className="text-gray-700 font-medium">Text Color</label>
+                <input
+                  type="color"
+                  value={textColor}
+                  onChange={(e) => setTextColor(e.target.value)}
+                  className="w-12 h-12 border border-gray-300 rounded-md"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <label className="text-gray-700 font-medium">Chat Icon Color</label>
+                <input
+                  type="color"
+                  value={iconColor}
+                  onChange={(e) => setIconColor(e.target.value)}
+                  className="w-12 h-12 border border-gray-300 rounded-md"
+                />
+              </div>
             </div>
-          )}
+          </section>
 
-        </div>
+          <section className="mb-6">
+            <h3 className="text-lg font-semibold text-primary mb-2">Bot Icon</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="text-gray-700 font-medium">Circular Shape</label>
+                <input
+                  type="checkbox"
+                  checked={botIconCircular}
+                  onChange={(e) => setBotIconCircular(e.target.checked)}
+                  className="toggle-checkbox"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <label className="text-gray-700 font-medium">Image</label>
+                <div className="flex items-center">
+                  <div className={`w-12 h-12 ${botIconCircular ? 'rounded-full' : ''} bg-cover bg-center`}>
+                    {botIconImage ? (
+                      <img
+                        src={botIconImage} // Preview URL or existing URL
+                        alt="Bot Icon"
+                        className={`w-full h-full ${botIconCircular ? 'rounded-full' : ''}`}
+                      />
+                    ) : (
+                      <FontAwesomeIcon icon={faRobot} size="2x" style={{ color: '#ccc' }} />
+                    )}
+                  </div>
+                  <label className="ml-3 bg-gray-200 hover:bg-gray-300 text-black px-3 py-1 rounded-md cursor-pointer">
+                    Change
+                    <input type="file" onChange={handleBotIconImageChange} className="hidden" />
+                  </label>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="mb-6">
+            <h3 className="text-lg font-semibold text-primary mb-2">Chat Icon</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="text-gray-700 font-medium">Circular Shape</label>
+                <input
+                  type="checkbox"
+                  checked={chatIconCircular}
+                  onChange={(e) => setChatIconCircular(e.target.checked)}
+                  className="toggle-checkbox"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <label className="text-gray-700 font-medium">Size</label>
+                <input
+                  type="range"
+                  min="45"
+                  max="55"
+                  value={chatIconSize}
+                  onChange={(e) => setChatIconSize(parseInt(e.target.value))}
+                  className="slider w-full"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <label className="text-gray-700 font-medium">Image</label>
+                <div className={`w-12 h-12 ${chatIconCircular ? 'rounded-full' : ''} bg-cover bg-center`}>
+                  {chatIconImage ? (
+                    <img
+                      src={chatIconImage} // Preview URL or existing URL
+                      alt="Chat Icon"
+                      className={`w-full h-full ${chatIconCircular ? 'rounded-full' : ''}`}
+                    />
+                  ) : (
+                    <FontAwesomeIcon icon={faUserCircle} size="2x" style={{ color: '#ccc' }} />
+                  )}
+                </div>
+                <label className="ml-3 bg-gray-200 hover:bg-gray-300 text-black px-3 py-1 rounded-md cursor-pointer">
+                  Change
+                  <input type="file" onChange={handleChatIconImageChange} className="hidden" />
+                </label>
+              </div>
+            </div>
+          </section>
+
+          <button
+            type="submit"
+            className="mt-4 px-6 py-2 bg-primary text-white rounded-md shadow-lg hover:bg-primary-dark transition"
+          >
+            <FontAwesomeIcon icon={faSave} className="mr-2" /> Save
+          </button>
+        </form>
       </div>
 
       <div className="bg-white w-full p-6 shadow-lg">
@@ -323,7 +287,6 @@ const Configuration = () => {
         </button>
       )}
     </div>
-
   );
 };
 

@@ -36,7 +36,7 @@ const Integrations = () => {
     };
 
     return (
-        <div className="p-8 bg-gray-100 shadow-md rounded-lg mx-auto flex items justify-center">
+        <div className="p-8 bg-gray-100 rounded-lg mx-auto flex items justify-center">
             <div className="w-full max-w-3xl">
 
                 <h1 className="text-xl font-bold mb-8 text- text-gray-900">Integrate Chatbot with Your Website</h1>

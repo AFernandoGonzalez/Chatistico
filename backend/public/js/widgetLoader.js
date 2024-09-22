@@ -20,13 +20,13 @@
 
         if (isChatOpen) {
             chatbotContainer.style.display = "block";
-            toggleButtonIcon.className = "fas fa-times"; // Change toggle icon to close
+            toggleButtonIcon.className = "";
             if (messages.length === 0) {
                 performGetChatAction("getChatHistory");
             }
         } else {
             chatbotContainer.style.display = "none";
-            toggleButtonIcon.className = "fas fa-comments";
+            toggleButtonIcon.className = config.chat_icon_image;
         }
 
         adjustToggleButtonVisibility();
@@ -42,14 +42,11 @@
 
     function displayValidationError(message) {
         const chatContent = document.getElementById("chat-content");
-
-        // Create a container for the error message
         const errorWrapper = document.createElement("div");
         errorWrapper.style.display = "flex";
         errorWrapper.style.justifyContent = "center";
         errorWrapper.style.margin = "10px 0";
 
-        // Create the error message element
         const errorMessage = document.createElement("div");
         errorMessage.style.backgroundColor = "#f8d7da";
         errorMessage.style.color = "#721c24";
@@ -58,13 +55,10 @@
         errorMessage.style.fontSize = "0.9rem";
         errorMessage.textContent = message;
 
-        // Append the error message to the wrapper
         errorWrapper.appendChild(errorMessage);
 
-        // Append the error message to the chat content
         chatContent.appendChild(errorWrapper);
 
-        // Scroll to the bottom to show the latest message
         chatContent.scrollTop = chatContent.scrollHeight;
 
         setTimeout(() => {
@@ -81,7 +75,6 @@
         const chatbotContainer = document.createElement("div");
         chatbotContainer.id = "chatbot-container";
         chatbotContainer.style.position = "fixed";
-        // chatbotContainer.style.right = "10px";
         chatbotContainer.style.boxShadow = "0px 10px 30px rgba(0, 0, 0, 0.2)";
         chatbotContainer.style.transition = "all 0.3s ease-in-out";
         chatbotContainer.style.width = "350px";
@@ -135,7 +128,6 @@
         adjustChatbotSize();
         window.addEventListener("resize", adjustChatbotSize);
 
-        // Chat Header
         const chatHeader = document.createElement("div");
         chatHeader.style.display = "flex";
         chatHeader.style.alignItems = "center";
@@ -145,17 +137,14 @@
         chatHeader.style.borderBottom = "1px solid rgba(0, 0, 0, 0.1)";
         chatbotContainer.appendChild(chatHeader);
 
-        // Create a container for the avatar and title
         const avatarTitleContainer = document.createElement("div");
         avatarTitleContainer.style.display = "flex";
         avatarTitleContainer.style.alignItems = "center";
 
-        // Agent Avatar
         const agentAvatar = document.createElement("img");
         agentAvatar.src =
-            config.agent_avatar ||
-            "https://images.unsplash.com/photo-1561212044-bac5ef688a07?w=900&auto=format&fit=crop&q=60";
-        agentAvatar.alt = "Agent Avatar";
+            config.chat_icon_image;
+        agentAvatar.alt = config.chatbot_name;
         agentAvatar.style.width = "48px";
         agentAvatar.style.height = "48px";
         agentAvatar.style.borderRadius = "50%";
@@ -233,12 +222,11 @@
         // Append chatbot container to the body
         document.body.appendChild(chatbotContainer);
 
-        // Create toggle button for chat
         toggleButton = document.createElement("button");
         toggleButton.style.position = "fixed";
         toggleButton.style.bottom = "10px";
         toggleButton.style.right = "10px";
-        toggleButton.style.padding = "12px";
+        toggleButton.style.padding = "5px";
         toggleButton.style.backgroundColor = config.icon_color;
         toggleButton.style.borderRadius = config.chat_icon_circular ? "50%" : "10%";
         toggleButton.style.color = "#ffffff";
@@ -247,20 +235,41 @@
         toggleButton.style.transition = "all 0.3s ease-in-out";
         toggleButton.style.width = `${config.chat_icon_size}px`;
         toggleButton.style.height = `${config.chat_icon_size}px`;
-        // toggleButton.style.minWidth = "45px";
-        toggleButton.style.backgroundImage = `url('${config.chat_icon_image || ""
-            }')`;
-        toggleButton.style.backgroundSize = "cover";
-        toggleButton.style.backgroundPosition = "center";
-        toggleButton.onclick = toggleChat;
+        
 
+        // Create a div to wrap the icon and give it some padding
+        const toggleButtonWrapper = document.createElement("div");
+        toggleButtonWrapper.style.padding = "5px"; // Add some padding around the icon
+        toggleButtonWrapper.style.backgroundColor = config.icon_color;
+        toggleButtonWrapper.style.borderRadius = config.chat_icon_circular ? "50%" : "10%";
+        toggleButtonWrapper.style.display = "flex";
+        toggleButtonWrapper.style.alignItems = "center";
+        toggleButtonWrapper.style.justifyContent = "center";
+        toggleButtonWrapper.style.width = "100%";
+        toggleButtonWrapper.style.height = "100%";
+
+        // Create the icon element
         const toggleButtonIcon = document.createElement("i");
         toggleButtonIcon.id = "toggle-button-icon";
-        toggleButtonIcon.className = "fas fa-comments";
-        toggleButton.appendChild(toggleButtonIcon);
+        toggleButtonIcon.style.backgroundImage = `url('${config.chat_icon_image || ""}')`;
+        toggleButtonIcon.style.backgroundSize = "cover";
+        toggleButtonIcon.style.backgroundPosition = "center";
+        toggleButtonIcon.style.width = "100%";
+        toggleButtonIcon.style.height = "100%";
+        toggleButtonIcon.style.borderRadius = config.chat_icon_circular ? "50%" : "10%";
+
+        // Append the icon to the wrapper div
+        toggleButtonWrapper.appendChild(toggleButtonIcon);
+
+        // Append the wrapper div to the button
+        toggleButton.appendChild(toggleButtonWrapper);
+
+        // Add click handler
+        toggleButton.onclick = toggleChat;
 
         // Append the toggle button to the body
         document.body.appendChild(toggleButton);
+
 
         window.addEventListener("resize", adjustToggleButtonVisibility);
 

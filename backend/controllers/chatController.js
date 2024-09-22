@@ -2,8 +2,8 @@ const DOMPurify = require('dompurify')(new (require('jsdom')).JSDOM().window);
 const NodeCache = require('node-cache');
 const { getAIResponse } = require('../services/openaiService');
 const supabase = require('../config/db');
-const cache = new NodeCache({ stdTTL: 300, checkperiod: 320 }); // Cache for 5 minutes
-const moment = require('moment-timezone'); // Import moment with timezone support
+const cache = new NodeCache({ stdTTL: 300, checkperiod: 320 });
+const moment = require('moment-timezone');
 
 exports.getAllChatsByChatbot = async (req, res) => {
   try {
@@ -74,32 +74,27 @@ exports.getChatHistory = async (req, res) => {
       return res.status(500).json({ error: chatError.message });
     }
 
-    const INACTIVITY_THRESHOLD_MINUTES = 3; // 3 minutes for inactivity threshold
+    const INACTIVITY_THRESHOLD_MINUTES = 20;
     let sendInactivityGreeting = false;
 
     if (chats.length > 0) {
-      // Get the last message in the chat
       const lastMessage = chats[0].messages[chats[0].messages.length - 1];
       if (!lastMessage) {
-        sendInactivityGreeting = true; // First-time interaction, send greeting
+        sendInactivityGreeting = true;
       } else {
-        const lastInteractionUTC = moment.utc(lastMessage.timestamp); // Last message timestamp in UTC
-        const currentTimeUTC = moment.utc(); // Current time in UTC
+        const lastInteractionUTC = moment.utc(lastMessage.timestamp);
+        const currentTimeUTC = moment.utc();
 
-        // Calculate the time difference in minutes
         const timeDifference = currentTimeUTC.diff(lastInteractionUTC, 'minutes');
 
-        // Check if the user has been inactive for more than the threshold
         if (timeDifference > INACTIVITY_THRESHOLD_MINUTES && lastMessage.text !== "It's been a while! How can I assist you today?") {
           sendInactivityGreeting = true;
         }
       }
 
-      // Send greeting if required
       if (sendInactivityGreeting) {
         const greetingMessage = "It's been a while! How can I assist you today?";
 
-        // Save the greeting message in the messages table
         const { data: greeting, error: greetingError } = await supabase
           .from('messages')
           .insert([{ chat_id: chats[0].id, text: greetingMessage, role_id: 1, session_user_id: sessionUserId, timestamp: new Date().toISOString() }])
@@ -110,7 +105,6 @@ exports.getChatHistory = async (req, res) => {
           return res.status(500).json({ error: 'Failed to send greeting message.' });
         }
 
-        // Add the greeting to the messages array
         chats[0].messages.push(greeting);
       }
     }
@@ -159,7 +153,6 @@ exports.newMessage = async (req, res) => {
 
 const tokenize = (text) => {
   if (!text || typeof text !== 'string') {
-    console.log("Invalid input for tokenize:", text);
     return [];
   }
   return text.toLowerCase().split(/\W+/);
@@ -171,19 +164,14 @@ const calculateSimilarity = (inputTokens, questionTokens) => {
 };
 
 const searchQAPairs = async (text, chatbotId) => {
-  console.log("searchQAPairs text", text);
-  console.log("searchQAPairs chatbotId", chatbotId);
-
-  // Search for FAQ-type questions in the database
   const { data, error } = await supabase
     .from('qa_pairs')
-    .select('id, question, answer')  // Select both question and answer
+    .select('id, question, answer')
     .eq('chatbot_id', chatbotId)
     .eq('type', 'faq')
-    .not('question', 'is', null);  // Ensure question is not null
+    .not('question', 'is', null);
 
   if (error || !data.length) {
-    console.log("No data found in qa_pairs.");
     return { matchFound: false, message: 'No relevant data found.' };
   }
 
@@ -197,15 +185,13 @@ const searchQAPairs = async (text, chatbotId) => {
 
     if (similarity > bestSimilarity) {
       bestSimilarity = similarity;
-      bestMatch = pair;  // Store the best match (both question and answer)
+      bestMatch = pair;
     }
   });
 
   if (bestMatch && bestSimilarity > 0.49) {
-    console.log("Best match found:", bestMatch, "with similarity:", bestSimilarity);
-    return { matchFound: true, bestMatch };  // Return both question and answer
+    return { matchFound: true, bestMatch };
   } else {
-    console.log("No match found with similarity threshold.");
     return { matchFound: false, message: 'No relevant data found.' };
   }
 };
@@ -225,7 +211,6 @@ exports.sendMessage = async (req, res) => {
 
 
   try {
-    // Retrieve the chatbot_id from the chats table using chatId
     const { data: chatData, error: chatError } = await supabase
       .from('chats')
       .select('id, chatbot_id')
@@ -237,14 +222,10 @@ exports.sendMessage = async (req, res) => {
     }
 
     const chatbotId = chatData.chatbot_id;
-    const cacheKey = `${chatbotId}_${text}`;  // Unique key for caching based on chatbotId and question
-
-    // Check if the response is cached
+    const cacheKey = `${chatbotId}_${text}`;
     if (cache.has(cacheKey)) {
-      console.log(`Using cached response for chatId: ${chatId}`);
       const cachedResponse = cache.get(cacheKey);
 
-      // Save the cached response
       const { data: aiMessageData, error: aiMessageError } = await supabase
         .from('messages')
         .insert([{ chat_id: chatId, text: cachedResponse, role_id: 1, session_user_id: sessionUserId, timestamp: new Date().toISOString() }])
@@ -259,7 +240,6 @@ exports.sendMessage = async (req, res) => {
       return res.status(201).json({ userMessage: text, aiMessage: aiMessageData });
     }
 
-    // Save the user's message first
     const { data: userMessage, error: userMessageError } = await supabase
       .from('messages')
       .insert([{ chat_id: chatId, text, role_id, session_user_id: sessionUserId, timestamp: new Date().toISOString() }])
@@ -271,24 +251,18 @@ exports.sendMessage = async (req, res) => {
       return res.status(500).json({ error: 'Failed to send message.' });
     }
 
-    // Search for relevant data in qa_pairs
     const searchResult = await searchQAPairs(text, chatbotId);
 
     if (searchResult.matchFound) {
       const { question, answer } = searchResult.bestMatch;
 
-      // Check if the answer is already good, else pass it to AI
       let enhancedResponse = answer;
 
       if (question !== text) {
         enhancedResponse = await getAIResponse(text, question, answer);
       }
-
-      // Cache the AI response
       cache.set(cacheKey, enhancedResponse);
-      console.log(`Cached response for chatbotId: ${chatbotId}, question: "${text}"`);
 
-      // Save the enhanced AI response
       const { data: aiMessageData, error: aiMessageError } = await supabase
         .from('messages')
         .insert([{ chat_id: chatId, text: enhancedResponse, role_id: 1, session_user_id: sessionUserId, timestamp: new Date().toISOString() }])
@@ -302,10 +276,8 @@ exports.sendMessage = async (req, res) => {
 
       return res.status(201).json({ userMessage, aiMessage: aiMessageData });
     } else {
-      // Handle fallback when no relevant data is found
       const fallbackMessage = "I'm sorry, I don't have information on that. Could you clarify or try asking another question?";
 
-      // Save the fallback response
       const { data: aiMessageData, error: aiMessageError } = await supabase
         .from('messages')
         .insert([{ chat_id: chatId, text: fallbackMessage, role_id: 1, session_user_id: sessionUserId, timestamp: new Date().toISOString() }])
