@@ -83,10 +83,6 @@ const createChatbot = async (req, res) => {
   }
 };
 
-module.exports = {
-  createChatbot
-};
-
 
 const getChatbotById = async (req, res) => {
   const { id } = req.params;  
